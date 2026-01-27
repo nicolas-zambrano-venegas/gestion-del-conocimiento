@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "bootstrap": "^5.3.8"
+    "vue-select": "^3.20.4"
   }
 }

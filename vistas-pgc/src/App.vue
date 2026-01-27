@@ -1,5 +1,5 @@
 <script setup>
-import characterization_form from './components/characterization_form.vue'
+import characterization_form from './components/vistas/vistas usuarios/characterization_form.vue'
 // import HelloWorld from './components/HelloWorld.vue'
 
 </script>

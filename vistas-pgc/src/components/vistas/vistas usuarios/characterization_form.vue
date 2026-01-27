@@ -2,8 +2,8 @@
 import Multiselect from "@vueform/multiselect"
 import "@vueform/multiselect/themes/default.css"
 
-import topics from "../data/topics.js"
-import universityprograms from "../data/university_programs.js"
+import topics from "../../../data/topics.js"
+import universityprograms from "../../../data/university_programs.js"
 
 export default{
     components: {Multiselect},
@@ -25,6 +25,10 @@ export default{
                 Author_2:""
             },
 
+            Career: null,
+            Options_Programs: universityprograms,
+
+
             Selected_Topics: [],
             Available_Topics: topics,
 
@@ -42,10 +46,17 @@ export default{
                 alert("Debe colocar un titulo")
                 return
             }
+
             if (this.academic_level === null) {
-                alert("Debe seleccionar el nivel academico")
+                alert("Seleccione el semestre al que pertenece")
                 return
             }
+
+            if (this.Career === null) {
+                alert("Seleccione la carrera a la que pertenece")
+                return
+            }
+
 
             const authors = [this.Authors.Author_1]
             if (this.Number_Authors === 2 && this.Authors.Author_2) {
@@ -57,6 +68,7 @@ export default{
                 title: this.title,
                 academic_level: this.academic_level,
                 Authors: authors,
+                Career: this.Career,
                 topics: this.Selected_Topics,
                 programs: this.Selected_Programs
             }
@@ -76,6 +88,7 @@ export default{
             this.Authors.Author_1 = ""
             this.Authors.Author_2 = ""
             this.Number_Authors = 1
+            this.Career = null
             this.Selected_Topics = []
             this.Selected_Programs = []
             this.showform = false
@@ -92,6 +105,7 @@ export default{
             
             this.title = project.title
             this.academic_level = project.academic_level
+            this.Career = project.Career
             this.Selected_Topics =[...project.topics]
             this.Selected_Programs = [...project.programs]
 
@@ -124,8 +138,9 @@ export default{
                 <th>Titulos</th>
                 <th>Semestre</th>
                 <th>Autores</th>
-                <th>temas</th>
-                <th>programas</th>
+                <th>Carrera</th>
+                <th>Temas</th>
+                <th>programas Relacionados</th>
                 <th>opciones</th>   
             </tr>
         </thead>
@@ -141,6 +156,7 @@ export default{
                 <td>{{ project.title }}</td>
                 <td>{{ project.academic_level}}</td>
                 <td>{{ project.Authors.join(", ") }}</td>
+                <td>{{ project.Career }}</td>
                 <td>{{ project.topics.join(", ") }}</td>
                 <td>{{ project.programs.join(", ") }}</td>
                 <td class="d-flex gap-2">
@@ -218,6 +234,21 @@ export default{
                                                 <input type="text" class="form-control" v-model="Authors.Author_2">
                                             </div>
                                         </div>
+
+                                        <div class="cold-md-4">
+                                            <label class="form-label">Carrera</label>
+                                            <select class="form-select" v-model="Career" >
+                                                <option :value="null"></option>
+
+                                                <option v-for="select_Carrer in Options_Programs"
+                                                :key="select_Carrer"
+                                                :value="select_Carrer"
+                                                >
+                                                {{ select_Carrer }}    
+                                                </option>
+                                            </select>
+
+                                        </div>
         
                                         <hr class="my-4">
         
@@ -231,7 +262,7 @@ export default{
                                         </div>
                             
                                         <div class="mb-4">
-                                            <label class="form-label">Programas relacionados</label>
+                                            <label class="form-label">Programas Relacionados</label>
                                             <multiselect
                                             :options="Related_Programs"
                                             v-model="Selected_Programs"
@@ -252,6 +283,10 @@ export default{
         </div>
     </div>
 
+<!-- terminar de hacer validaciones para los campos de: autores, carrera, 
+ mejorar el estilo de las vistas,
+ añadir un boton de cerrar formulario
+  -->
 </template>
 
 <style>

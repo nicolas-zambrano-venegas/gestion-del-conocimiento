@@ -1,4 +1,7 @@
 <script>
+// no lo borres bro, con este ando modificando y estructurando 
+
+
 import Multiselect from "@vueform/multiselect"
 import "@vueform/multiselect/themes/default.css"
 

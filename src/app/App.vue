@@ -1,7 +1,6 @@
 <script setup>
-import CharacterizationForm from '../views/CharacterizationForm.vue'
 </script>
 
 <template>
-  <CharacterizationForm />
+  <router-view />
 </template>

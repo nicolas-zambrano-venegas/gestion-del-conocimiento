@@ -107,10 +107,4 @@ const closeForm = () => {
             </div>
         </div>
     </div>
-
-<!-- terminar de hacer validaciones para los campos de: autores, carrera, 
- mejorar el estilo de las vistas,
- añadir un boton de cerrar formulario
-  -->
-<!-- Quedo hecho bro -->
 </template>

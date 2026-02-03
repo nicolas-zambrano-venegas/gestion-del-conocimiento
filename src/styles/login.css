@@ -1,0 +1,60 @@
+.login-page {
+  height: 100vh;
+  background: linear-gradient(135deg, #00482b, #007b3e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  width: 900px;
+  max-width: 95%;
+}
+
+.login-image {
+  width: 50%;
+  background: #f8f9fa;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-image img {
+  width: 80%;
+}
+
+.login-form {
+  width: 50%;
+  padding: 50px;
+}
+
+.btn-login {
+  background-color: #0b5d3b;
+  color: white;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 12px;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-login:hover {
+  background-color: #094d31;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.logo-udc {
+  width: auto;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .login-form {
+    width: 100%;
+    padding: 40px 30px;
+  }
+}

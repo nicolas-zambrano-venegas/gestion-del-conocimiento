@@ -2,9 +2,13 @@ import { HttpClient } from "../core/HttpClient";
 import { EventEmitter } from "../core/EventEmitter";
 import { UsuariosCollection } from "../collections/UsuariosCollection";
 import { EstudiantesCollection } from "../collections/EstudiantesCollection";
-import { DocentesCollection } from "../collections/DocentesCollection";
 import { ProyectosCollection } from "../collections/ProyectosCollection";
 import { CalificacionesCollection } from "../collections/CalificacionesCollection";
+import { RolesCollection } from "../collections/RolesCollection";
+import { ProgramasCollection } from "../collections/ProgramasCollection";
+import { EstadosCollection } from "../collections/EstadosCollection";
+import { EvidenciasCollection } from "../collections/EvidenciasCollection";
+import { TemasCollection } from "../collections/TemasCollection";
 import { Proyecto } from "../models/Proyecto";
 
 const decodeJwt = (token) => {
@@ -29,16 +33,19 @@ export class Client {
         this._tokenPayload = decodeJwt(token);
         this._usuario = null;
         this._estudiante = null;
-        this._docente = null;
         this._cache = new Map();
         this._inflight = new Map();
         this.cacheTtl = cacheTtl;
 
         this.usuarios = new UsuariosCollection(this);
         this.estudiantes = new EstudiantesCollection(this);
-        this.docentes = new DocentesCollection(this);
         this.proyectos = new ProyectosCollection(this);
         this.calificaciones = new CalificacionesCollection(this);
+        this.roles = new RolesCollection(this);
+        this.programas = new ProgramasCollection(this);
+        this.estados = new EstadosCollection(this);
+        this.evidencias = new EvidenciasCollection(this);
+        this.temas = new TemasCollection(this);
 
         if (this._tokenPayload?.role) {
             this.role = this._tokenPayload.role;
@@ -174,30 +181,6 @@ export class Client {
 
     get estudiante() {
         return this.fetchCurrentEstudiante();
-    }
-
-    async fetchCurrentDocente() {
-        if (this._docente) return this._docente;
-        const usuario = await this.getUsuario().catch(() => null);
-        const { items: docentes } = await this.docentes.list();
-        let docente = null;
-
-        if (usuario) {
-            docente = docentes.find(
-                (item) => item.id_usuario === usuario.id || item.idUsuario === usuario.id,
-            );
-        }
-
-        if (!docente && docentes.length === 1) {
-            docente = docentes[0];
-        }
-
-        this._docente = docente || null;
-        return this._docente;
-    }
-
-    get docente() {
-        return this.fetchCurrentDocente();
     }
 
     async getEstudianteProyecto(estudianteId) {

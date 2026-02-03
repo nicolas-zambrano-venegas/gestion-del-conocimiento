@@ -53,6 +53,7 @@
 <script>
 import "../../styles/login.css";
 import client from "../../sdk";
+import { hashPassword } from "../../sdk";
 
 export default {
   name: "Login",
@@ -67,33 +68,54 @@ export default {
   methods: {
     async login() {
       this.error = "";
+      if (this.loading) {
+        return;
+      }
+      if (!this.cedula?.trim() || !this.password?.trim()) {
+        this.error = "Debe ingresar cédula y contraseña";
+        return;
+      }
+      const cedula = this.cedula.trim();
+      const password = this.password.trim();
       this.loading = true;
       try {
-        const response = await client.login({
-          cedula: this.cedula,
-          password: this.password
-        });
+        const salt = btoa(cedula);
+        const hashed = await hashPassword(password, { salt });
+        let response;
+        try {
+          response = await client.login({
+            cedula,
+            password: JSON.stringify(hashed)
+          });
+        } catch (error) {
+          if (error?.status === 401) {
+            response = await client.login({ cedula, password });
+          } else {
+            throw error;
+          }
+        }
 
-
-        const role = response?.role;
+  const role = response?.role?.toUpperCase();
         const token = response?.access_token;
 
         if (!token || !role) {
           throw new Error("Credenciales inválidas");
         }
 
+        const normalizedRole = role === "DOCENTE" ? "PROFESOR" : role;
+
         localStorage.setItem("token", token);
-        localStorage.setItem("role", role);
+        localStorage.setItem("role", normalizedRole);
         client.setToken(token);
 
-        if (role === "ADMIN" || role === "SUPERADMIN") {
+        if (normalizedRole === "ADMIN" || normalizedRole === "SUPERADMIN") {
           this.$router.push("/admin");
-        } else if (role === "DOCENTE") {
+        } else if (normalizedRole === "PROFESOR") {
           this.$router.push("/docente");
-        } else if (role === "ESTUDIANTE") {
+        } else if (normalizedRole === "ESTUDIANTE") {
           this.$router.push("/estudiante");
         } else {
-          this.$router.push("/");
+          this.error = "Rol no reconocido";
         }
       } catch (error) {
         console.error("Login error:", error);

@@ -2,7 +2,11 @@ export class HttpClient {
     constructor({ baseUrl = "", token = null, fetcher = window.fetch.bind(window), emitter = null, retries = 0, retryDelay = 300 } = {}) {
         this.setBaseUrl(baseUrl);
         this.token = token;
-        this.fetcher = fetcher;
+        if (fetcher && typeof fetcher.bind === "function") {
+            this.fetcher = fetcher.bind(typeof globalThis !== "undefined" ? globalThis : undefined);
+        } else {
+            this.fetcher = fetcher;
+        }
         this.emitter = emitter;
         this.retries = retries;
         this.retryDelay = retryDelay;
@@ -28,7 +32,8 @@ export class HttpClient {
             retryOn = [408, 429, 500, 502, 503, 504],
         } = {},
     ) {
-        const url = new URL(path, this.baseUrl || window.location.origin);
+        const origin = typeof window !== "undefined" && window.location ? window.location.origin : "http://127.0.0.1";
+        const url = new URL(path, this.baseUrl || origin);
         if (params) {
             const searchParams = new URLSearchParams();
             Object.entries(params).forEach(([key, value]) => {

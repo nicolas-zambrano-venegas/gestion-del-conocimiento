@@ -24,7 +24,7 @@ const router = createRouter({
             path: '/docente',
             name: 'docente',
             component: DocenteDashboard,
-            meta: { requiresAuth: true, role: 'DOCENTE' }
+            meta: { requiresAuth: true, role: 'PROFESOR' }
         },
         {
             path: '/estudiante',
@@ -46,7 +46,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-    const role = localStorage.getItem('role')
+    const role = localStorage.getItem('role')?.toUpperCase()
     const token = localStorage.getItem('token')
 
     if (to.meta?.requiresAuth) {
@@ -54,9 +54,15 @@ router.beforeEach((to, from, next) => {
             next({ name: 'login' })
             return
         }
-        if (to.meta.role && to.meta.role !== role) {
-            next({ name: 'login' })
-            return
+        if (to.meta.role) {
+            if (to.meta.role === 'ADMIN' && role === 'SUPERADMIN') {
+                next()
+                return
+            }
+            if (to.meta.role !== role) {
+                next({ name: 'login' })
+                return
+            }
         }
     }
 

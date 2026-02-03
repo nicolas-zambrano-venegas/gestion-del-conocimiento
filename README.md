@@ -244,20 +244,18 @@ if (proyecto.activo) {
 
 ---
 
-## 6) Usuarios de prueba (ya cargados en la base de datos)
-
-Estos usuarios están en la SQLite [Backend/app/db/None.db](Backend/app/db/None.db):
+## 6) Usuarios de prueba (ya cargados en la base de datos de prueba)
 
 ```js
 const usuariosDePrueba = {
-	estudiante: { cedula: "20000001", password: "1234", rol: "ESTUDIANTE" },
-	docente: { cedula: "20000002", password: "1234", rol: "DOCENTE" },
-	admin: { cedula: "20000003", password: "1234", rol: "ADMIN" },
-	superadmin: { cedula: "20000004", password: "1234", rol: "SUPERADMIN" }
+	estudiante: { cedula: "20000011", password: "1234", rol: "ESTUDIANTE" },
+	profesor: { cedula: "20000012", password: "1234", rol: "PROFESOR" },
+	admin: { cedula: "20000013", password: "1234", rol: "ADMIN" },
+	superadmin: { cedula: "20000014", password: "1234", rol: "SUPERADMIN" }
 };
 ```
 
-> Nota: en la base el rol de docente puede aparecer como `PROFESOR`, pero el backend lo normaliza a `DOCENTE`.
+> Nota: la contraseña está **hasheada** en la base. El frontend envía el hash al hacer login.
 
 ---
 

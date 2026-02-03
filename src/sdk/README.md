@@ -6,6 +6,28 @@ Este documento describe **todo lo que realmente existe** en el SDK ubicado en `s
 
 ---
 
+## Índice
+
+- [1) Configuración general](#1-configuración-general)
+- [2) Cliente principal (Client)](#2-cliente-principal-client)
+- [3) HTTP Client (HttpClient)](#3-http-client-httpclient)
+- [4) Colecciones (Collection)](#4-colecciones-collection)
+- [5) Colecciones disponibles en el SDK](#5-colecciones-disponibles-en-el-sdk)
+- [5.10) Propiedades por entidad](#510-propiedades-por-entidad-creación-filtros-actualización)
+- [5.11) Endpoints del backend sin colección en el SDK](#511-endpoints-del-backend-sin-colección-en-el-sdk)
+- [6) Métodos adicionales por colección](#6-métodos-adicionales-por-colección)
+- [7) Modelos y métodos específicos](#7-modelos-y-métodos-específicos)
+- [8) Cache y rendimiento](#8-cache-y-rendimiento)
+- [9) Eventos (EventEmitter)](#9-eventos-eventemitter)
+- [10) Filtrado, búsqueda y ordenamiento](#10-filtrado-búsqueda-y-ordenamiento)
+- [11) Manejo de sesión](#11-manejo-de-sesión)
+- [12) Seguridad de contraseñas (SDK)](#12-seguridad-de-contraseñas-sdk)
+- [13) Ejemplos completos (end-to-end)](#13-ejemplos-completos-end-to-end)
+- [14) Buenas prácticas](#14-buenas-prácticas)
+- [15) Resumen rápido de “todo lo que se puede usar”](#15-resumen-rápido-de-todo-lo-que-se-puede-usar)
+
+---
+
 ## 1) Configuración general
 
 ### 1.1 Base URL
@@ -141,19 +163,7 @@ const usuario = await client.usuario;
 
 ---
 
-### 2.7 `client.docente`
-**Qué hace:** obtiene el docente asociado al usuario actual.
-
-**Ejemplo:**
-```js
-const docente = await client.docente;
-```
-
-**Explicación:** consulta docentes y relaciona con el usuario actual. Este método lista todos los docentes y busca el que coincide con el usuario.
-
----
-
-### 2.8 `client.estudiante`
+### 2.7 `client.estudiante`
 **Qué hace:** obtiene el estudiante asociado al usuario actual.
 
 **Ejemplo:**
@@ -165,7 +175,7 @@ const estudiante = await client.estudiante;
 
 ---
 
-### 2.9 `client.getEstudianteProyecto(estudianteId)`
+### 2.8 `client.getEstudianteProyecto(estudianteId)`
 **Qué hace:** obtiene el proyecto de un estudiante.
 
 **Ejemplo:**
@@ -177,13 +187,9 @@ const proyecto = await client.getEstudianteProyecto(10);
 
 ---
 
-## 2.10 Autenticación y autorización (backend actual)
+## 2.9 Autenticación y autorización (backend actual)
 
 - **Token requerido:** todos los endpoints, excepto `/login` y `/usuarios`, requieren `Authorization: Bearer <token>`.
-- **Docentes** (`/docentes`):
-	- `GET /docentes` y `GET /docentes/:id` requieren token.
-	- `POST`, `PUT`, `DELETE` requieren roles `ADMIN` o `SUPERADMIN`.
-	- `GET /docentes/:id/proyectos` requiere token.
 - **Estudiantes** (`/estudiantes`):
 	- `GET /estudiantes` y `GET /estudiantes/:id` requieren token.
 	- `POST`, `PUT`, `DELETE` requieren roles `DOCENTE`, `ADMIN` o `SUPERADMIN`.
@@ -293,7 +299,7 @@ Las colecciones representan endpoints REST y son el uso recomendado.
 const { items, meta } = await client.estudiantes.list({ page: 1, pageSize: 20 });
 ```
 
-**Explicación:** `pageSize` se traduce automáticamente a `page_size` para el backend. Solo `/estudiantes` y `/proyectos` soportan paginación y devuelven `meta`. En endpoints que responden un array simple (`/usuarios`, `/docentes`, `/calificaciones`), `meta` será `null`.
+**Explicación:** `pageSize` se traduce automáticamente a `page_size` para el backend. Solo `/estudiantes` y `/proyectos` soportan paginación y devuelven `meta`. En endpoints que responden un array simple (`/usuarios`, `/roles`, `/programas`, `/estados`, `/temas`, `/evidencias`, `/calificaciones`), `meta` será `null`.
 
 **Ejemplo (filtros):**
 ```js
@@ -326,7 +332,13 @@ const usuario = await client.usuarios.get(5);
 
 **Ejemplo:**
 ```js
-const nuevo = await client.docentes.create({ nombre: "Profe X", id_estado: 1 });
+const nuevo = await client.usuarios.create({
+	nombre: "Ana",
+	cedula: "123456",
+	password: "secreto",
+	activo: true,
+	rol_id: 1
+});
 ```
 
 **Explicación:** hace `POST` y retorna un modelo con los datos creados.
@@ -387,32 +399,91 @@ await client.usuarios.delete(1);
 
 ---
 
-### 5.2 `client.docentes`
-**Qué hace:** opera sobre `/docentes`.
+### 5.2 `client.roles`
+**Qué hace:** opera sobre `/roles`.
 
 **Ejemplos:**
 ```js
-const { items } = await client.docentes.list();
-const docente = await client.docentes.get(2);
-const nuevo = await client.docentes.create({
-	nombre: "Profe X",
-	id_estado: 1,
-	id_usuario: 10
-});
-const actualizado = await client.docentes.update(2, {
-	nombre: "Profe Y",
-	id_estado: 1,
-	id_usuario: 10
-});
+const { items } = await client.roles.list();
+const rol = await client.roles.get(1);
+const nuevo = await client.roles.create({ nombre: "ESTUDIANTE" });
+const actualizado = await client.roles.update(1, { nombre: "DOCENTE" });
+await client.roles.delete(3);
 ```
 
-**Explicación:** lista y consulta docentes. Usa métodos del modelo para proyectos.
-
-**Nota:** en `update()` no necesitas enviar todos los parámetros; puedes enviar solo los que cambian.
+**Explicación:** maneja creación, consulta, actualización y eliminación de roles.
 
 ---
 
-### 5.3 `client.estudiantes`
+### 5.3 `client.programas`
+**Qué hace:** opera sobre `/programas`.
+
+**Ejemplos:**
+```js
+const { items } = await client.programas.list();
+const programa = await client.programas.get(1);
+const nuevo = await client.programas.create({ nombre: "SIN PROGRAMA" });
+const actualizado = await client.programas.update(1, { nombre: "NUEVO" });
+await client.programas.delete(2);
+```
+
+**Explicación:** maneja creación, consulta, actualización y eliminación de programas.
+
+---
+
+### 5.4 `client.estados`
+**Qué hace:** opera sobre `/estados`.
+
+**Ejemplos:**
+```js
+const { items } = await client.estados.list();
+const estado = await client.estados.get(1);
+const nuevo = await client.estados.create({ nombre: "ACTIVO" });
+const actualizado = await client.estados.update(1, { nombre: "INACTIVO" });
+await client.estados.delete(2);
+```
+
+**Explicación:** maneja creación, consulta, actualización y eliminación de estados.
+
+---
+
+### 5.5 `client.temas`
+**Qué hace:** opera sobre `/temas`.
+
+**Ejemplos:**
+```js
+const { items } = await client.temas.list();
+const tema = await client.temas.get(1);
+const nuevo = await client.temas.create({ nombre: "Tema X" });
+const actualizado = await client.temas.update(1, { nombre: "Tema Y" });
+await client.temas.delete(2);
+```
+
+**Explicación:** maneja creación, consulta, actualización y eliminación de temas.
+
+---
+
+### 5.6 `client.evidencias`
+**Qué hace:** opera sobre `/evidencias`.
+
+**Ejemplos:**
+```js
+const { items } = await client.evidencias.list();
+const evidencia = await client.evidencias.get(1);
+const nuevo = await client.evidencias.create({
+	proyecto_id: 1,
+	descripcion: "Evidencia inicial",
+	url_pdf: "https://ejemplo.com/doc.pdf"
+});
+const actualizado = await client.evidencias.update(1, { descripcion: "Evidencia actualizada" });
+await client.evidencias.delete(2);
+```
+
+**Explicación:** maneja creación, consulta, actualización y eliminación de evidencias.
+
+---
+
+### 5.7 `client.estudiantes`
 **Qué hace:** opera sobre `/estudiantes`.
 
 **Ejemplos:**
@@ -420,13 +491,10 @@ const actualizado = await client.docentes.update(2, {
 const { items } = await client.estudiantes.list();
 const estudiante = await client.estudiantes.get(5);
 const nuevo = await client.estudiantes.create({
-	nombre: "Laura Pérez",
-	id_estado: 1,
 	usuario_id: 12,
 	programa_id: 3
 });
 const actualizado = await client.estudiantes.update(5, {
-	nombre: "Laura Pérez",
 	usuario_id: 12,
 	programa_id: 4
 });
@@ -438,7 +506,7 @@ const actualizado = await client.estudiantes.update(5, {
 
 ---
 
-### 5.4 `client.proyectos`
+### 5.8 `client.proyectos`
 **Qué hace:** opera sobre `/proyectos`.
 
 **Ejemplos:**
@@ -467,7 +535,7 @@ const actualizado = await client.proyectos.update(7, {
 
 ---
 
-### 5.5 `client.calificaciones`
+### 5.9 `client.calificaciones`
 **Qué hace:** opera sobre `/calificaciones`.
 
 **Ejemplos:**
@@ -478,8 +546,7 @@ const nuevo = await client.calificaciones.create({
 	evidencia_id: 7,
 	nota: 4.5,
 	observaciones: "Buen trabajo",
-	estado_id: 1,
-	profesor_id: 2
+	estado_id: 1
 });
 const actualizado = await client.calificaciones.update(10, {
 	nota: 4.8,
@@ -493,11 +560,11 @@ const actualizado = await client.calificaciones.update(10, {
 
 ---
 
-## 5.6 Propiedades por entidad (creación, filtros, actualización)
+## 5.10 Propiedades por entidad (creación, filtros, actualización)
 
 > **Importante:** el SDK **no valida** esquemas. En otras palabras, **acepta cualquier propiedad** que el backend soporte. A continuación se documentan **las propiedades reales del backend actual** y cómo se usan. Si el backend admite más campos, se pueden enviar sin problema.
 
-### 5.6.1 Usuarios (`/usuarios`)
+### 5.10.1 Usuarios (`/usuarios`)
 
 **Creación (POST /usuarios)**
 - **Campos reales en el backend:**
@@ -538,79 +605,190 @@ await client.usuarios.update(1, { nombre: "Ana Gómez", rol_id: 2 });
 
 ---
 
-### 5.6.2 Docentes (`/docentes`)
+### 5.10.2 Roles (`/roles`)
 
-**Creación (POST /docentes)**
+**Creación (POST /roles)**
 - **Campos reales en el backend:**
 	- `nombre` (string)
-	- `telefono` (string | null)
-	- `email` (string | null)
-	- `id_estado` (number)
-	- `id_usuario` (number | null)
-	- `deshabilitado` (datetime | null, ISO 8601)
 
 **Ejemplo de creación:**
 ```js
-await client.docentes.create({
-	nombre: "Profe X",
-	id_estado: 1,
-	id_usuario: 10
-});
+await client.roles.create({ nombre: "ESTUDIANTE" });
 ```
 
-**Filtros (GET /docentes)**
-- El endpoint `/docentes` **no tiene paginación ni filtros** en el backend actual. Cualquier parámetro extra será ignorado.
+**Filtros (GET /roles)**
+- El endpoint `/roles` **no tiene paginación ni filtros** en el backend actual. Cualquier parámetro extra será ignorado.
 
 **Ejemplo de filtros:**
 ```js
-await client.docentes.list();
+await client.roles.list();
 ```
 
-**Actualización (PUT /docentes/:id)**
+**Actualización (PUT /roles/:id)**
 - **Nota:** NO necesitas enviar todas las propiedades. Envía solo las que cambian.
-- **Campos comunes a actualizar:** `nombre`, `telefono`, `email`, `id_estado`, `id_usuario`, `deshabilitado`.
+- **Campos comunes a actualizar:** `nombre`.
 
 **Ejemplo de actualización parcial:**
 ```js
-await client.docentes.update(2, { nombre: "Profe Y", id_estado: 2 });
+await client.roles.update(1, { nombre: "DOCENTE" });
 ```
 
 ---
 
-### 5.6.3 Estudiantes (`/estudiantes`)
+### 5.10.3 Programas (`/programas`)
+
+**Creación (POST /programas)**
+- **Campos reales en el backend:**
+	- `nombre` (string)
+
+**Ejemplo de creación:**
+```js
+await client.programas.create({ nombre: "SIN PROGRAMA" });
+```
+
+**Filtros (GET /programas)**
+- El endpoint `/programas` **no tiene paginación ni filtros** en el backend actual. Cualquier parámetro extra será ignorado.
+
+**Ejemplo de filtros:**
+```js
+await client.programas.list();
+```
+
+**Actualización (PUT /programas/:id)**
+- **Nota:** NO necesitas enviar todas las propiedades. Envía solo las que cambian.
+- **Campos comunes a actualizar:** `nombre`.
+
+**Ejemplo de actualización parcial:**
+```js
+await client.programas.update(1, { nombre: "NUEVO" });
+```
+
+---
+
+### 5.10.4 Estados (`/estados`)
+
+**Creación (POST /estados)**
+- **Campos reales en el backend:**
+	- `nombre` (string)
+
+**Ejemplo de creación:**
+```js
+await client.estados.create({ nombre: "ACTIVO" });
+```
+
+**Filtros (GET /estados)**
+- El endpoint `/estados` **no tiene paginación ni filtros** en el backend actual. Cualquier parámetro extra será ignorado.
+
+**Ejemplo de filtros:**
+```js
+await client.estados.list();
+```
+
+**Actualización (PUT /estados/:id)**
+- **Nota:** NO necesitas enviar todas las propiedades. Envía solo las que cambian.
+- **Campos comunes a actualizar:** `nombre`.
+
+**Ejemplo de actualización parcial:**
+```js
+await client.estados.update(1, { nombre: "INACTIVO" });
+```
+
+---
+
+### 5.10.5 Temas (`/temas`)
+
+**Creación (POST /temas)**
+- **Campos reales en el backend:**
+	- `nombre` (string)
+
+**Ejemplo de creación:**
+```js
+await client.temas.create({ nombre: "Tema X" });
+```
+
+**Filtros (GET /temas)**
+- El endpoint `/temas` **no tiene paginación ni filtros** en el backend actual. Cualquier parámetro extra será ignorado.
+
+**Ejemplo de filtros:**
+```js
+await client.temas.list();
+```
+
+**Actualización (PUT /temas/:id)**
+- **Nota:** NO necesitas enviar todas las propiedades. Envía solo las que cambian.
+- **Campos comunes a actualizar:** `nombre`.
+
+**Ejemplo de actualización parcial:**
+```js
+await client.temas.update(1, { nombre: "Tema Y" });
+```
+
+---
+
+### 5.10.6 Evidencias (`/evidencias`)
+
+**Creación (POST /evidencias)**
+- **Campos reales en el backend:**
+	- `proyecto_id` (number)
+	- `descripcion` (string)
+	- `url_pdf` (string)
+
+**Ejemplo de creación:**
+```js
+await client.evidencias.create({
+	proyecto_id: 1,
+	descripcion: "Evidencia inicial",
+	url_pdf: "https://ejemplo.com/doc.pdf"
+});
+```
+
+**Filtros (GET /evidencias)**
+- El endpoint `/evidencias` **no tiene paginación ni filtros** en el backend actual. Cualquier parámetro extra será ignorado.
+
+**Ejemplo de filtros:**
+```js
+await client.evidencias.list();
+```
+
+**Actualización (PUT /evidencias/:id)**
+- **Nota:** NO necesitas enviar todas las propiedades. Envía solo las que cambian.
+- **Campos comunes a actualizar:** `proyecto_id`, `descripcion`, `url_pdf`.
+
+**Ejemplo de actualización parcial:**
+```js
+await client.evidencias.update(1, { descripcion: "Evidencia actualizada" });
+```
+
+---
+
+### 5.10.7 Estudiantes (`/estudiantes`)
 
 **Creación (POST /estudiantes)**
 - **Campos reales en el backend:**
-	- `nombre` (string)
-	- `id_estado` (number)
 	- `usuario_id` (number | null)
 	- `programa_id` (number | null)
-	- `deshabilitado` (datetime | null, ISO 8601)
 
 **Ejemplo de creación:**
 ```js
 await client.estudiantes.create({
-	nombre: "Laura Pérez",
-	id_estado: 1,
 	usuario_id: 12,
 	programa_id: 3
 });
 ```
 
 **Filtros (GET /estudiantes)**
-- **Búsqueda:** `q` (string) busca por nombre.
-- **Filtros:** `estado` (id de estado), `programa` (id de programa).
-- **Orden:** `sort` con campos permitidos: `id`, `nombre`, `estado`, `programa`. Usa prefijo `-` para desc.
+- **Filtros:** `programa` (id de programa), `usuario` (id de usuario).
+- **Orden:** `sort` con campos permitidos: `id`, `programa`, `usuario`. Usa prefijo `-` para desc.
 - **Paginación:** `page` y `page_size` (o `pageSize`).
 
 **Ejemplo de filtros:**
 ```js
-await client.estudiantes.list({ page: 1, pageSize: 20, q: "Laura", estado: 1, programa: 3, sort: "-nombre" });
+await client.estudiantes.list({ page: 1, pageSize: 20, programa: 3, usuario: 12, sort: "-id" });
 ```
 
 **Actualización (PUT /estudiantes/:id)**
 - **Nota:** NO necesitas enviar todas las propiedades. Envía solo las que cambian.
-- **Campos comunes a actualizar:** `nombre`, `id_estado`, `usuario_id`, `programa_id`, `deshabilitado`.
+- **Campos comunes a actualizar:** `usuario_id`, `programa_id`.
 
 **Ejemplo de actualización parcial:**
 ```js
@@ -619,7 +797,7 @@ await client.estudiantes.update(5, { programa_id: 4 });
 
 ---
 
-### 5.6.4 Proyectos (`/proyectos`)
+### 5.10.8 Proyectos (`/proyectos`)
 
 **Creación (POST /proyectos)**
 - **Campos reales en el backend:**
@@ -660,14 +838,13 @@ await client.proyectos.update(7, { titulo: "Proyecto Demo 2", estado_id: 2 });
 
 ---
 
-### 5.6.5 Calificaciones (`/calificaciones`)
+### 5.10.9 Calificaciones (`/calificaciones`)
 
 **Creación (POST /calificaciones)**
 - **Campos reales en el backend:**
 	- `evidencia_id` (number)
 	- `nota` (number)
 	- `estado_id` (number)
-	- `profesor_id` (number)
 	- `observaciones` (string | null)
 
 **Ejemplo de creación:**
@@ -676,8 +853,7 @@ await client.calificaciones.create({
 	evidencia_id: 7,
 	nota: 4.5,
 	observaciones: "Buen trabajo",
-	estado_id: 1,
-	profesor_id: 2
+	estado_id: 1
 });
 ```
 
@@ -691,7 +867,7 @@ await client.calificaciones.list();
 
 **Actualización (PUT /calificaciones/:id)**
 - **Nota:** NO necesitas enviar todas las propiedades. Envía solo las que cambian.
-- **Campos comunes a actualizar:** `evidencia_id`, `nota`, `estado_id`, `profesor_id`, `observaciones`.
+- **Campos comunes a actualizar:** `evidencia_id`, `nota`, `estado_id`, `observaciones`.
 
 **Ejemplo de actualización parcial:**
 ```js
@@ -700,42 +876,15 @@ await client.calificaciones.update(10, { nota: 4.8, observaciones: "Excelente tr
 
 ---
 
-## 5.7 Endpoints del backend sin colección en el SDK
+## 5.11 Endpoints del backend sin colección en el SDK
 
-El backend expone más rutas que **no** tienen colección en el SDK. Para ellas usa `client.http`:
-
-- `/roles`
-- `/programas`
-- `/estados`
-- `/evidencias`
-- `/temas`
-- `/materias`
-- `/periodos`
-- `/semestres`
-- `/tipos_estados`
-- `/tipos_seguimientos`
-- `/seguimientos`
-- `/user`
-
-**Nota:** estos endpoints también están sujetos a autenticación y roles según el backend.
+Actualmente, todas las rutas del backend usadas por el frontend tienen colección en el SDK.
 
 ---
 
 ## 6) Métodos adicionales por colección
 
-### 6.1 `client.docentes.getProyectos(docenteId)`
-**Qué hace:** obtiene los proyectos de un docente.
-
-**Ejemplo:**
-```js
-const proyectos = await client.docentes.getProyectos(2);
-```
-
-**Explicación:** llama a `/docentes/:id/proyectos` y retorna modelos `Proyecto`.
-
----
-
-### 6.2 `client.proyectos.getEstudiantes(proyectoId)`
+### 6.1 `client.proyectos.getEstudiantes(proyectoId)`
 **Qué hace:** obtiene estudiantes de un proyecto.
 
 **Ejemplo:**
@@ -768,7 +917,7 @@ await proyecto.refresh();
 **Ejemplo:**
 ```js
 const proyecto = await client.proyectos.get(7);
-await proyecto.calificar({ evidencia_id: 7, nota: 4.8, estado_id: 1, profesor_id: 2 });
+await proyecto.calificar({ evidencia_id: 7, nota: 4.8, estado_id: 1 });
 ```
 
 **Explicación:** delega a `client.calificaciones.create()` y requiere los campos reales de calificación.
@@ -788,20 +937,7 @@ const estudiantes = await proyecto.estudiantes;
 
 ---
 
-### 7.4 `Docente.proyectos`
-**Qué hace:** obtiene proyectos del docente.
-
-**Ejemplo:**
-```js
-const docente = await client.docentes.get(2);
-const proyectos = await docente.proyectos;
-```
-
-**Explicación:** usa internamente `client.docentes.getProyectos()`.
-
----
-
-### 7.5 `Estudiante.proyecto`
+### 7.4 `Estudiante.proyecto`
 **Qué hace:** obtiene el proyecto del estudiante.
 
 **Ejemplo:**
@@ -981,9 +1117,75 @@ client.setToken(null);
 
 ---
 
-## 12) Ejemplos completos (end-to-end)
+## 12) Seguridad de contraseñas (SDK)
 
-### 12.1 Login + redirección
+> **Nota:** en producción, las contraseñas deben hashearse en el backend. Estas utilidades son para uso en frontend (por ejemplo, almacenamiento local o pruebas).
+
+### 12.1 `hashPassword(password)`
+**Qué hace:** genera un hash con PBKDF2 (no reversible).
+
+**Ejemplo:**
+```js
+import { hashPassword } from "../../sdk";
+
+const hashed = await hashPassword("mi-clave");
+// { salt, hash, iterations }
+```
+
+**Ejemplo con parámetros (opcionales):**
+```js
+import { hashPassword } from "../../sdk";
+
+const hashed = await hashPassword("mi-clave", {
+	salt: "BASE64_SALT",
+	iterations: 120000
+});
+```
+
+**Nota:** `salt` e `iterations` son opcionales. Si no los pasas, el SDK genera un `salt` y usa 100000 iteraciones.
+
+### 12.2 `verifyPassword(password, { salt, hash })`
+**Qué hace:** valida una contraseña contra su hash.
+
+**Ejemplo:**
+```js
+import { verifyPassword } from "../../sdk";
+
+const ok = await verifyPassword("mi-clave", hashed);
+```
+
+### 12.3 Ejemplos CRUD con hash
+
+**Crear usuario (hash en backend recomendado):**
+```js
+import { hashPassword } from "../../sdk";
+
+const hashed = await hashPassword("MiClave123");
+await client.usuarios.create({
+	nombre: "Ana",
+	cedula: "123456",
+	password: JSON.stringify(hashed),
+	activo: true,
+	rol_id: 1
+});
+```
+
+**Actualizar contraseña (hash):**
+```js
+const hashed = await hashPassword("NuevaClave123");
+await client.usuarios.update(1, { password: JSON.stringify(hashed) });
+```
+
+**Eliminar usuario:**
+```js
+await client.usuarios.delete(1);
+```
+
+---
+
+## 13) Ejemplos completos (end-to-end)
+
+### 13.1 Login + redirección
 **Qué hace:** autentica y redirige por rol.
 
 **Ejemplo:**
@@ -998,20 +1200,7 @@ client.setToken(data.access_token); // opcional, login ya lo hace
 
 ---
 
-### 12.2 Cargar panel Docente
-**Qué hace:** trae proyectos asignados.
-
-**Ejemplo:**
-```js
-const docente = await client.docente;
-const proyectos = await docente.proyectos;
-```
-
-**Explicación:** evita pedir endpoints manuales.
-
----
-
-### 12.3 Cargar panel Estudiante
+### 13.2 Cargar panel Estudiante
 **Qué hace:** trae el proyecto del estudiante.
 
 **Ejemplo:**
@@ -1024,7 +1213,7 @@ const proyecto = await estudiante.proyecto;
 
 ---
 
-## 13) Buenas prácticas
+## 14) Buenas prácticas
 
 - Usa las colecciones en lugar de llamar `client.http` directamente.
 - Maneja errores con `try/catch` y muestra feedback al usuario.
@@ -1033,18 +1222,19 @@ const proyecto = await estudiante.proyecto;
 
 ---
 
-## 14) Resumen rápido de “todo lo que se puede usar”
+## 15) Resumen rápido de “todo lo que se puede usar”
 
 - `client.login`
 - `client.setToken`, `client.setBaseUrl`
 - `Client` con `retries`, `retryDelay`, `cacheTtl`, `fetcher`
-- `client.usuario`, `client.docente`, `client.estudiante`
+- `client.usuario`, `client.estudiante`
 - `client.getEstudianteProyecto`
-- `client.usuarios`, `client.docentes`, `client.estudiantes`, `client.proyectos`, `client.calificaciones`
+- `client.usuarios`, `client.roles`, `client.programas`, `client.estados`, `client.temas`, `client.evidencias`, `client.estudiantes`, `client.proyectos`, `client.calificaciones`
 - `client.http` (`get`, `post`, `put`, `delete`)
 - `list`, `get`, `create`, `update`, `delete`
-- `getProyectos` (docentes), `getEstudiantes` (proyectos)
-- Métodos de modelos: `Proyecto.refresh`, `Proyecto.calificar`, `Proyecto.estudiantes`, `Docente.proyectos`, `Estudiante.proyecto`
+- `getEstudiantes` (proyectos)
+- Métodos de modelos: `Proyecto.refresh`, `Proyecto.calificar`, `Proyecto.estudiantes`, `Estudiante.proyecto`
+- Seguridad: `hashPassword`, `verifyPassword`
 - Cache: `getCached`, `setCache`, `invalidateCache`, `invalidateCacheByPrefix`
 - Eventos: `on`, `once`, `off`
 

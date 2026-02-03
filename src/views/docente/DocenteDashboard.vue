@@ -1,7 +1,7 @@
 <template>
   <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h1>Panel Docente</h1>
+      <h1>Panel Profesor</h1>
       <button class="btn btn-danger" @click="cerrarSesion">Cerrar sesión</button>
     </div>
 
@@ -32,10 +32,8 @@ export default {
   },
   async mounted() {
     try {
-      const docente = await client.docente;
-      if (docente) {
-        this.proyectos = await docente.proyectos;
-      }
+      const { items } = await client.proyectos.list({ page: 1, pageSize: 50 });
+      this.proyectos = items;
     } finally {
       this.loading = false;
     }

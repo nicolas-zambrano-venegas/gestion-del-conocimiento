@@ -1,8 +1,8 @@
 # Documentación del SDK
 
-Este documento describe **todo lo que realmente existe** en el SDK ubicado en `src/sdk/`, basado en el backend actual de la carpeta Backend. Incluye configuración, métodos, modelos, colecciones, caché, eventos, manejo de errores y ejemplos **con título y explicación**.
+Este documento describe **todo lo que realmente existe** en el SDK ubicado en `src/sdk/`, basado en el backend. Incluye configuración, métodos, modelos, colecciones, caché, eventos, manejo de errores y ejemplos **con título y explicación**.
 
-> Este SDK está pensado para ser la puerta de entrada a la API **para las colecciones implementadas**. El backend tiene más endpoints (ver Backend/app/routers); para esos casos usa `client.http`.
+> Este SDK está pensado para ser la puerta de entrada a la API **para las colecciones implementadas**. El backend tiene más endpoints (ver el Backend bro); para esos casos usa `client.http`.
 
 ---
 

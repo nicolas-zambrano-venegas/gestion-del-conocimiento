@@ -125,6 +125,7 @@ export class Client {
 
     async login({ cedula, password }) {
         const data = await this.http.post("/login", { cedula, password });
+        
         if (data?.access_token) {
             this.setToken(data.access_token);
         }

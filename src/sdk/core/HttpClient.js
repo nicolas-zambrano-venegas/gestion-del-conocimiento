@@ -1,5 +1,5 @@
 export class HttpClient {
-    constructor({ baseUrl = "", token = null, fetcher = fetch, emitter = null, retries = 0, retryDelay = 300 } = {}) {
+    constructor({ baseUrl = "", token = null, fetcher = window.fetch.bind(window), emitter = null, retries = 0, retryDelay = 300 } = {}) {
         this.setBaseUrl(baseUrl);
         this.token = token;
         this.fetcher = fetcher;

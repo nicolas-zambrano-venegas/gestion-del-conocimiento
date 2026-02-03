@@ -74,6 +74,7 @@ export default {
           password: this.password
         });
 
+
         const role = response?.role;
         const token = response?.access_token;
 
@@ -95,6 +96,7 @@ export default {
           this.$router.push("/");
         }
       } catch (error) {
+        console.error("Login error:", error);
         this.error = "Error al iniciar sesión";
       } finally {
         this.loading = false;

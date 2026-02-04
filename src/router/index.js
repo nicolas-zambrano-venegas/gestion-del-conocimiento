@@ -5,10 +5,8 @@ import Login from '../views/auth/Login.vue'
 import AdminDashboard from '../views/admin/AdminDashboard.vue'
 import DocenteDashboard from '../views/docente/DocenteDashboard.vue'
 import EstudianteDashboard from '../views/estudiante/EstudianteDashboard.vue'
-import UsuariosView from "../views/admin/UsuariosView.vue";
-import ProgramasView from "../views/admin/ProgramasView.vue";
-import ProyectosView from "../views/admin/ProyectosView.vue";
-import RolesView from "../views/admin/RolesView.vue";
+import ExplorarRepositorio from '../views/estudiante/ExplorarRepositorio.vue'
+
 
 const router = createRouter({
     history: createWebHistory (import.meta.env.BASE_URL),
@@ -35,6 +33,12 @@ const router = createRouter({
             name: 'estudiante',
             component: EstudianteDashboard,
             meta: { requiresAuth: true, role: 'ESTUDIANTE' }
+        },
+        {
+            path: '/explorar',
+            name: 'ExplorarRepositorio',
+            component:ExplorarRepositorio,
+            meta: { requiresAuth: true, role: 'ESTUDIANTE'}
         },
         {
             path: '/characterization',

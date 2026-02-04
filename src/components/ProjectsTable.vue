@@ -1,4 +1,3 @@
-<template>
 <!-- <template>
   <table class="table table-hover">
     <thead class="table-ligth">
@@ -50,6 +49,8 @@ defineProps({
 })
 
 defineEmits(['edit', 'delete'])
+</script> -->
+
 <template>
   <table class="table table-hover">
     <thead class="table-light">

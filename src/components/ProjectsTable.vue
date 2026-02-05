@@ -1,111 +1,42 @@
-<!-- <template>
-  <table class="table table-hover">
-    <thead class="table-ligth">
-      <tr>
-        <th>Titulos</th>
-        <th>Semestre</th>
-        <th>Autores</th>
-        <th>Carrera</th>
-        <th>Temas</th>
-        <th>programas Relacionados</th>
-        <th>opciones</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <tr v-if="projects.length === 0">
-        <td colspan="4" class="text-center text-muted">
-          Sin proyectos registrados
-        </td>
-      </tr>
-
-      <tr v-for="(project, index) in projects" :key="index">
-        <td>{{ project.title }}</td>
-        <td>{{ project.academic_level }}</td>
-        <td>{{ project.Authors.join(", ") }}</td>
-        <td>{{ project.Career }}</td>
-        <td>{{ project.topics.join(", ") }}</td>
-        <td>{{ project.programs.join(", ") }}</td>
-        <td class="d-flex gap-2">
-          <button class="btn btn-sm btn-warning" @click="$emit('edit', project, index)">
-            <img src="/edit.png" width="18" />
-          </button>
-
-          <button class="btn btn-sm btn-danger" @click="$emit('delete', index)">
-            <img src="/bin.png" width="18" />
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</template>
-
-<script setup>
-defineProps({
-  projects: {
-    type: Array,
-    default: () => []
-  }
-})
-
-defineEmits(['edit', 'delete'])
-</script> -->
-
 <template>
   <table class="table table-hover">
     <thead class="table-light">
       <tr>
+        <th>Código</th>
         <th>Título</th>
-        <th>Semestre</th>
-        <th>Autores</th>
-        <th>Carrera</th>
-        <th>Temas</th>
-        <th>Programas Relacionados</th>
-        <th v-if="showActions || showView">Acciones</th>
+        <th>Nivel</th>
+        <th>Estado</th>
+        <th v-if="showView">Acciones</th>
       </tr>
     </thead>
 
     <tbody>
+      <!-- Sin datos -->
       <tr v-if="projects.length === 0">
-        <td :colspan="showActions || showView ? 7 : 6" class="text-center text-muted">
-          Sin proyectos registrados
+        <td :colspan="showView ? 5 : 4" class="text-center text-muted">
+          No hay proyectos registrados
         </td>
       </tr>
 
-      <tr v-for="(project, index) in projects" :key="index">
-        <td>{{ project.title }}</td>
-        <td>{{ project.academic_level }}</td>
-        <td>{{ project.Authors.join(", ") }}</td>
-        <td>{{ project.Career }}</td>
-        <td>{{ project.topics.join(", ") }}</td>
-        <td>{{ project.programs.join(", ") }}</td>
+      <!-- Proyectos -->
+      <tr v-for="project in projects" :key="project.codigo">
+        <td>{{ project.codigo }}</td>
+        <td>{{ project.titulo }}</td>
+        <td>{{ project.nivel }}</td>
+        <td>
+          <span class="badge bg-secondary"
+          :class="estadoClase(project.estado_id)">
+            {{ estadoTexto(project.estado) }}
+          </span>
+        </td>
 
-        <td v-if="showActions || showView" class="d-flex gap-2">
-          <!-- Ver (estudiante) -->
+        <td v-if="showView">
           <button
-            v-if="showView"
             class="btn btn-sm btn-primary"
             @click="$emit('view', project)"
           >
             Ver
           </button>
-
-          <!-- Editar / eliminar (admin / docente) -->
-          <template v-if="showActions">
-            <button
-              class="btn btn-sm btn-warning"
-              @click="$emit('edit', project, index)"
-            >
-              <img src="/edit.png" width="18" />
-            </button>
-
-            <button
-              class="btn btn-sm btn-danger"
-              @click="$emit('delete', index)"
-            >
-              <img src="/bin.png" width="18" />
-            </button>
-          </template>
         </td>
       </tr>
     </tbody>
@@ -117,10 +48,6 @@ defineProps({
   projects: {
     type: Array,
     default: () => []
-  },
-  showActions: {
-    type: Boolean,
-    default: true
   },
   showView: {
     type: Boolean,
@@ -128,5 +55,27 @@ defineProps({
   }
 })
 
-defineEmits(['edit', 'delete', 'view'])
+defineEmits(['view'])
+
+const estadoTexto = (estadoId) => {
+  const estados = {
+    1: "Activo",
+    2: "En revisión",
+    3: "Rechazado",
+    4: "Finalizado"
+  }
+
+  return estados[estadoId] || "Desconocido"
+}
+
+const estadoClase = (estadoId) => {
+  const clases = {
+    1: "bg-success",
+    2: "bg-warning text-dark",
+    3: "bg-danger",
+    4: "bg-secondary"
+  }
+
+  return clases[estadoId] || "bg-dark"
+}
 </script>

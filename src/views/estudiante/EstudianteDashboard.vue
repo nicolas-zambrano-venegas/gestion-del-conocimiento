@@ -104,7 +104,7 @@ export default {
 
       <!-- Agregar Proyecto (condicional) -->
       <div class="col-md-4" v-if="!proyecto">
-        <div class="card shadow dashboard-card" @click="go('/estudiante/nuevo-proyecto')">
+        <div class="card shadow dashboard-card" @click="go('/estudiante/NuevoProyecto')">
           <div class="card-body text-center">
             <h5>➕ Agregar Proyecto</h5>
             <p class="text-muted">Crea tu proyecto si aún no tienes uno</p>

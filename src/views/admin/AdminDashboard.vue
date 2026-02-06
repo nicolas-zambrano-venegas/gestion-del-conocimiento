@@ -1,26 +1,105 @@
 <template>
-  <div class="container mt-5">
+  <div class="container mt-4">
 
-    <!-- Header -->
-    <div
-      class="d-flex justify-content-between align-items-center mb-4"
-    >
-      <h2>Panel de Administración</h2>
+    <!-- ================= NAVBAR ================= -->
+    <nav class="navbar navbar-expand-lg navbar-dark admin-navbar mb-4 shadow-sm">
+      <div class="container-fluid">
 
-      <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- Logo -->
+        <span class="navbar-brand fw-bold">
+          📊 Panel Admin
+        </span>
 
+        <!-- Botón mobile -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#adminNavbar"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menú -->
+        <div class="collapse navbar-collapse" id="adminNavbar">
+
+          <!-- Links -->
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                @click.prevent="go('/admin/usuarios')"
+              >
+                👤 Usuarios
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                @click.prevent="go('/admin/programas')"
+              >
+                📚 Programas
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                @click.prevent="go('/admin/proyectos')"
+              >
+                📁 Proyectos
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                @click.prevent="go('/admin/roles')"
+              >
+                🔐 Roles
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                @click.prevent="go('/admin/estudiantes')"
+              >
+                🎓 Estudiantes
+              </a>
+            </li>
+
+          </ul>
+
+          <!-- Derecha -->
+          <div class="d-flex align-items-center gap-3">
+
+            <span class="text-white small">
+              Total usuarios: {{ totalUsuarios }}
+            </span>
+
+            <button
+              class="btn btn-outline-light btn-sm"
+              @click="cerrarSesion"
+            >
+              Cerrar sesión
+            </button>
+
+          </div>
+
+        </div>
       </div>
-
-      <button
-        class="btn btn-danger"
-        @click="cerrarSesion"
-      >
-        Cerrar sesión
-      </button>
-    </div>
+    </nav>
 
 
-    <!-- Cards -->
+    <!-- ================= CARDS ================= -->
     <div class="row g-4 justify-content-center">
 
       <!-- Usuarios -->
@@ -122,6 +201,8 @@
         </div>
       </div>
 
+
+      <!-- Estudiantes -->
       <div class="col-sm-6 col-md-4 d-flex">
         <div
           class="card dashboard-card"
@@ -132,13 +213,13 @@
             <img
               :src="icons.estudiantes"
               class="icon-img"
-              alt="Roles"
+              alt="Estudiantes"
             />
 
             <h5>Estudiantes</h5>
 
             <p class="text-muted">
-              Permisos
+              Información académica
             </p>
 
           </div>
@@ -173,9 +254,10 @@ export default {
 
     async cargarUsuarios() {
       try {
-        const res = await client.usuarios.list({ page: 1, pageSize: 1 });
-
-        console.log("RESPUESTA COMPLETA:", res);
+        const res = await client.usuarios.list({
+          page: 1,
+          pageSize: 1
+        });
 
         this.totalUsuarios = res?.items?.length || 0;
 
@@ -184,14 +266,13 @@ export default {
         this.totalUsuarios = 0;
       }
     },
-    
+
     cerrarSesion() {
       localStorage.clear();
       client.setToken(null);
 
       this.$router.push("/");
     },
-
 
     go(ruta) {
       this.$router.push(ruta);
@@ -204,19 +285,65 @@ export default {
 
 <style scoped>
 
+/* ================= NAVBAR ================= */
+
+.admin-navbar {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  border-radius: 14px;
+  padding: 10px 16px;
+}
+
+.admin-navbar .navbar-brand {
+  font-size: 18px;
+  letter-spacing: 0.5px;
+}
+
+.admin-navbar .nav-link {
+  color: rgba(255,255,255,0.9);
+  font-weight: 500;
+  transition: 0.2s;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.admin-navbar .nav-link:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+.admin-navbar .btn-outline-light {
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.admin-navbar .btn-outline-light:hover {
+  background: #fff;
+  color: #1e3a8a;
+}
+
+
+/* ================= CARDS ================= */
+
 .dashboard-card {
   width: 100%;
   height: 180px;
 
   cursor: pointer;
-  transition: 0.2s;
+  transition: 0.25s;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 12px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
 }
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 22px rgba(0,0,0,.15);
+}
+
 .card-body {
   display: flex;
   flex-direction: column;
@@ -225,15 +352,8 @@ export default {
 }
 
 
+/* ================= ICONOS ================= */
 
-/* Hover */
-.dashboard-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,.15);
-}
-
-
-/* Iconos */
 .icon-img {
   width: 42px;
   height: 42px;

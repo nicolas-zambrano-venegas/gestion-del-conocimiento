@@ -24,9 +24,11 @@
         <td>{{ project.titulo }}</td>
         <td>{{ project.nivel }}</td>
         <td>
-          <span class="badge bg-secondary"
-          :class="estadoClase(project.estado_id)">
-            {{ estadoTexto(project.estado) }}
+          <span
+            class="badge"
+            :class="estadoClase(project.estado_id)"
+          >
+            {{ estadoTexto(project.estado_id) }}
           </span>
         </td>
 

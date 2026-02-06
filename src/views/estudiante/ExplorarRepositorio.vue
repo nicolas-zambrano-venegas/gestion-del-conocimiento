@@ -70,8 +70,17 @@ export default {
 
       this.projects = res.items;
 
+
       } catch (error) {
         console.error("Error cargando proyectos:", error);
+
+        if (error?.message === "Token expirado") {
+    // limpiar sesión
+          localStorage.removeItem("token");
+
+    // redirigir al login
+          this.$router.push("/login");
+        }
       } finally {
         this.loading = false;
       }

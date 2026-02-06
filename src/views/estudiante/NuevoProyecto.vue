@@ -94,7 +94,7 @@ export default {
       form: {
         titulo: "",
         nivel: "",
-        estado_id: 1 // estado inicial (ej: En revisión)
+        estado_id: 1 
       },
 
       programas: [],
@@ -118,6 +118,7 @@ export default {
 
     } catch (e) {
       console.error("Sesión expirada", e);
+      // this.$router.push("/login")
     }
   },
 
@@ -126,14 +127,13 @@ export default {
     async cargarProgramas() {
       const res = await client.programas.list();
 
-      // excluir "Sin programa" (id = 1)
-      this.programas = res.filter(p => p.id !== 1);
+      this.programas = res.items.filter(p => p.id !== 1);
     },
 
     // 🏷️ TEMAS
     async cargarTemas() {
       const res = await client.temas.list();
-      this.temas = res;
+      this.temas = res.items;
     },
 
     // 🚀 CREAR PROYECTO

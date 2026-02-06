@@ -1,10 +1,23 @@
 <template>
   <div class="container mt-5">
-    <h2 class="mb-4">Crear nuevo proyecto</h2>
 
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Crear nuevo proyecto</h2>
+      <button class="btn btn-secondary" @click="$router.back()">
+        Volver
+      </button>
+    </div>
+
+    <!-- Error -->
+    <div v-if="error" class="alert alert-warning text-center">
+      {{ error }}
+    </div>
+
+    <!-- Formulario -->
     <form @submit.prevent="crearProyecto" class="card p-4 shadow">
 
-      <!-- TÍTULO -->
+      <!-- Título -->
       <div class="mb-3">
         <label class="form-label">Título del proyecto</label>
         <input
@@ -14,21 +27,22 @@
         />
       </div>
 
-      <!-- NIVEL -->
+      <!-- Nivel -->
       <div class="mb-3">
         <label class="form-label">Nivel / Semestre</label>
         <input
-          v-model="form.nivel"
+          v-model.number="form.nivel"
+          type="number"
           class="form-control"
           required
         />
       </div>
 
-      <!-- PROGRAMA -->
+      <!-- Programa -->
       <div class="mb-3">
         <label class="form-label">Programa</label>
         <select
-          v-model="programaId"
+          v-model.number="programaId"
           class="form-select"
           required
         >
@@ -46,7 +60,7 @@
         </select>
       </div>
 
-      <!-- TEMAS -->
+      <!-- Temas -->
       <div class="mb-3">
         <label class="form-label">Temas</label>
 
@@ -71,12 +85,14 @@
         </div>
       </div>
 
+      <!-- Botón -->
       <button
         class="btn btn-primary"
         :disabled="loading || temasSeleccionados.length === 0"
       >
         {{ loading ? "Creando..." : "Crear proyecto" }}
       </button>
+
     </form>
   </div>
 </template>
@@ -90,16 +106,17 @@ export default {
   data() {
     return {
       loading: false,
+      error: null,
 
       form: {
         titulo: "",
-        nivel: "",
-        estado_id: 1 
+        nivel: null,
+        estado_id: 2, 
       },
 
       programas: [],
       temas: [],
-      programaId: "",
+      programaId: null,
       temasSeleccionados: []
     };
   },
@@ -118,47 +135,46 @@ export default {
 
     } catch (e) {
       console.error("Sesión expirada", e);
-      // this.$router.push("/login")
     }
   },
 
   methods: {
-    // 📚 PROGRAMAS
     async cargarProgramas() {
       const res = await client.programas.list();
-
       this.programas = res.items.filter(p => p.id !== 1);
     },
 
-    // 🏷️ TEMAS
     async cargarTemas() {
       const res = await client.temas.list();
       this.temas = res.items;
     },
 
-    // 🚀 CREAR PROYECTO
     async crearProyecto() {
       this.loading = true;
+      this.error = null;
+
+      if (!this.form.titulo || !this.form.nivel || !this.programaId) {
+        this.error = "Debes completar todos los campos obligatorios";
+        this.loading = false;
+        return;
+      }
 
       try {
-        // 1️⃣ crear proyecto
         const proyecto = await client.proyectos.create(this.form);
         const proyectoId = proyecto.codigo;
 
-        // 2️⃣ asignar estudiante
         const estudiante = await client.estudiante;
+
         await client.proyectos.asignarEstudiante(
           proyectoId,
           estudiante.id
         );
 
-        // 3️⃣ asignar programa
         await client.proyectos.asignarPrograma(
           proyectoId,
           this.programaId
         );
 
-        // 4️⃣ asignar temas
         for (const temaId of this.temasSeleccionados) {
           await client.proyectos.asignarTema(
             proyectoId,
@@ -166,12 +182,18 @@ export default {
           );
         }
 
-        // 5️⃣ volver al dashboard
         this.$router.push("/estudiante");
 
-      } catch (e) {
-        console.error(e);
-        alert("Error creando el proyecto");
+      } catch (err) {
+        const mensaje = err?.message || "";
+
+        if (mensaje.includes("ya tiene proyecto")) {
+          this.error = "Ya tienes un proyecto asignado. No puedes crear otro.";
+        } else {
+          this.error =
+            "Ocurrió un error al crear el proyecto. Intenta nuevamente.";
+        }
+
       } finally {
         this.loading = false;
       }

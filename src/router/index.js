@@ -9,8 +9,9 @@ import ExplorarRepositorio from '../views/estudiante/ExplorarRepositorio.vue'
 import UsuariosView from "../views/admin/UsuariosView.vue";
 import ProgramasView from "../views/admin/ProgramasView.vue";
 import ProyectosView from "../views/admin/ProyectosView.vue";
-import NuevoProyecto from '../views/estudiante/NuevoProyecto.vue'
-// import RolesView from "../views/admin/RolesView.vue";
+import NuevoProyecto from '../views/estudiante/NuevoProyecto.vue';
+import DetalleProyecto from '../views/estudiante/DetalleProyecto.vue';
+
 
 const router = createRouter({
     history: createWebHistory (import.meta.env.BASE_URL),
@@ -41,7 +42,7 @@ const router = createRouter({
         {
             path: '/explorar',
             name: 'ExplorarRepositorio',
-            component:ExplorarRepositorio,
+            component: ExplorarRepositorio,
             meta: { requiresAuth: true, role: 'ESTUDIANTE'}
         },
         {
@@ -49,6 +50,13 @@ const router = createRouter({
             name: 'NuevoProyecto',
             component: NuevoProyecto,
             meta: { requiresAuth: true, role: 'ESTUDIANTE'}
+
+        },
+        {
+            path: '/estudiante/detalleproyecto/:id',
+            name: 'DetalleProyecto',
+            component: DetalleProyecto,
+            meta: {requiresAuth: true, role: 'ESTUDIANTE'}
 
         },
         {

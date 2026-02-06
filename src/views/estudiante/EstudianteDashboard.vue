@@ -1,169 +1,197 @@
-<!-- <template>
-  <div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h1>Panel Estudiante</h1>
-      <button class="btn btn-danger" @click="cerrarSesion">Cerrar sesión</button>
-    </div>
-
-    <div class="card p-3 shadow-sm">
-      <h5 class="mb-3">Proyecto asignado</h5>
-      <div v-if="loading" class="text-muted">Cargando...</div>
-      <div v-else>
-        <div v-if="proyecto">
-          <strong>{{ proyecto.titulo }}</strong>
-          <div class="text-muted">Nivel {{ proyecto.nivel }}</div>
-        </div>
-        <div v-else class="text-muted">No tienes proyecto asignado.</div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script>
-import client from "../../sdk";
-
-export default {
-  name: "Estudiante",
-  data() {
-    return {
-      proyecto: null,
-      loading: true
-    };
-  },
-  async mounted() {
-    try {
-      const estudiante = await client.estudiante;
-      if (estudiante) {
-        this.proyecto = await estudiante.proyecto;
-      }
-    } finally {
-      this.loading = false;
-    }
-  },
-  methods: {
-    cerrarSesion() {
-      localStorage.clear();
-      client.setToken(null);
-      this.$router.push("/");
-    }
-  }
-};
-</script> -->
-
 <template>
   <div class="container mt-5">
 
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1>Panel Estudiante</h1>
-      <button class="btn btn-danger" @click="cerrarSesion">Cerrar sesión</button>
+      <h2>Panel Estudiante</h2>
+      <button class="btn btn-danger" @click="cerrarSesion">
+        Cerrar sesion
+      </button>
     </div>
 
-    <!-- Cards -->
-    <div class="row g-4">
+    <UserInfoCard
+      v-if="estudiante"
+      :user="estudiante"
+      class="mb-4"
+    />
+    <UserInfoCard
+      v-else
+      :user="placeholderUser"
+      class="mb-4"
+    />
 
-      <!-- Mi Proyecto -->
-      <div class="col-md-4">
-        <div class="card shadow dashboard-card">
+    <div class="row g-4 justify-content-center">
+
+
+      <div class="col-sm-6 col-md-4 d-flex">
+        <div class="card dashboard-card">
           <div class="card-body text-center">
-            <h5>📘 Mi Proyecto</h5>
+            <h5>Mi Proyecto</h5>
 
-            <div v-if="loading" class="text-muted">Cargando...</div>
+            <div v-if="loading" class="text-muted">
+              Cargando...
+            </div>
 
             <div v-else>
               <div v-if="proyecto">
                 <div class="fw-bold">{{ proyecto.titulo }}</div>
                 <div class="text-muted">Nivel {{ proyecto.nivel }}</div>
               </div>
-              <div v-else class="text-muted">No tienes proyecto asignado</div>
+              <div v-else class="text-muted">
+                No tienes proyecto asignado
+              </div>
             </div>
+
           </div>
         </div>
       </div>
-      
 
-      <!-- Ver Proyecto / Detalles -->
-      <div class="col-md-4" v-if="proyecto">
-        <div class="card shadow dashboard-card" @click="go('/estudiante/proyecto')">
+      
+      <div
+        class="col-sm-6 col-md-4 d-flex"
+        v-if="proyecto"
+      >
+        <div
+          class="card dashboard-card"
+          @click="goDetalleProyecto"
+        >
           <div class="card-body text-center">
-            <h5>🔍 Ver Proyecto</h5>
+            <h5>Ver Proyecto</h5>
             <p class="text-muted">Detalles y avances</p>
           </div>
         </div>
       </div>
 
-      <!-- Explorar Repositorios -->
-      <div class="col-md-4">
-        <div class="card shadow dashboard-card" @click="go({name: 'ExplorarRepositorio'})">
+      
+      <div class="col-sm-6 col-md-4 d-flex">
+        <div
+          class="card dashboard-card"
+          @click="go({ name: 'ExplorarRepositorio' })"
+        >
           <div class="card-body text-center">
-            <h5>📂 Explorar Repositorios</h5>
+            <h5>Explorar Repositorios</h5>
             <p class="text-muted">Lista general de proyectos</p>
           </div>
         </div>
       </div>
 
-      <!-- Agregar Proyecto (condicional) -->
-      <div class="col-md-4" v-if="!proyecto">
-        <div class="card shadow dashboard-card" @click="go('/estudiante/NuevoProyecto')">
+     
+      <div
+        class="col-sm-6 col-md-4 d-flex"
+        v-if="!proyecto"
+      >
+        <div
+          class="card dashboard-card"
+          @click="go('/estudiante/NuevoProyecto')"
+        >
           <div class="card-body text-center">
-            <h5>➕ Agregar Proyecto</h5>
-            <p class="text-muted">Crea tu proyecto si aún no tienes uno</p>
+            <h5>Agregar Proyecto</h5>
+            <p class="text-muted">
+              Crea tu proyecto si aun no tienes uno
+            </p>
           </div>
         </div>
       </div>
 
     </div>
-
   </div>
 </template>
 
 <script>
-import client from "../../sdk";
+import client from "../../sdk"
+import UserInfoCard from "../../components/user/UserInfoCard.vue"
 
 export default {
   name: "EstudianteDashboard",
+
+  components: {
+    UserInfoCard
+  },
+
   data() {
     return {
+      estudiante: null,
       proyecto: null,
       loading: true,
-      error: null
-    };
+      error: null,
+
+     
+      placeholderUser: {
+        nombres: "Cargando...",
+        apellidos: "",
+        rol: "Estudiante",
+        activo: false,
+        foto: ""
+      }
+    }
   },
+
   async mounted() {
     try {
-      const estudiante = await client.estudiante;
-      if (estudiante) {
-        this.proyecto = await estudiante.proyecto;
+    
+      this.estudiante = await client.estudiante
+
+      if (this.estudiante) {
+        this.proyecto = await this.estudiante.proyecto
       }
+
     } catch (e) {
-      console.error(e);
-      this.error = "No se pudo cargar la información del proyecto";
+      console.error("Error cargando estudiante:", e)
+      this.error = "No se pudo cargar la información"
+      
     } finally {
-      this.loading = false;
+      this.loading = false
     }
   },
+
   methods: {
-    go(path) {
-      this.$router.push(path);
+    goDetalleProyecto() {
+      if (!this.proyecto) return
+
+      this.$router.push({
+        name: "DetalleProyecto",
+        params: {
+          id: this.proyecto.codigo   
+        }
+      })
     },
+
+    go(ruta) {
+      this.$router.push(ruta)
+    },
+
     cerrarSesion() {
-      localStorage.clear();
-      client.setToken(null);
-      this.$router.push("/");
+      localStorage.clear()
+      client.setToken(null)
+      this.$router.push("/")
     }
   }
-};
+}
 </script>
-
 
 <style scoped>
 .dashboard-card {
+  width: 100%;
+  height: 180px;
+
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: 0.2s;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .dashboard-card:hover {
-  transform: translateY(-5px);
-  background: #f8f9fa;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.15);
 }
 </style>

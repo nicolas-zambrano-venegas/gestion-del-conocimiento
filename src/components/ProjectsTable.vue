@@ -11,14 +11,12 @@
     </thead>
 
     <tbody>
-      <!-- Sin datos -->
       <tr v-if="projects.length === 0">
         <td :colspan="showView ? 5 : 4" class="text-center text-muted">
           No hay proyectos registrados
         </td>
       </tr>
 
-      <!-- Proyectos -->
       <tr v-for="project in projects" :key="project.codigo">
         <td>{{ project.codigo }}</td>
         <td>{{ project.titulo }}</td>

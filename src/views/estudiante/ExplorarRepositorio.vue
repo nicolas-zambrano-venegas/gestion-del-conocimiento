@@ -1,15 +1,13 @@
 <template>
   <div class="container mt-5">
 
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>📂 Explorar Repositorios</h2>
+      <h2>Explorar Repositorios</h2>
       <button class="btn btn-secondary" @click="$router.back()">
         Volver
       </button>
     </div>
 
-    <!-- Buscador -->
     <div class="mb-3">
       <input
         v-model="search"
@@ -20,7 +18,6 @@
       />
     </div>
 
-    <!-- Tabla -->
     <div v-if="loading" class="text-muted">
       Cargando proyectos...
     </div>
@@ -75,10 +72,9 @@ export default {
         console.error("Error cargando proyectos:", error);
 
         if (error?.message === "Token expirado") {
-    // limpiar sesión
+
           localStorage.removeItem("token");
 
-    // redirigir al login
           this.$router.push("/login");
         }
       } finally {

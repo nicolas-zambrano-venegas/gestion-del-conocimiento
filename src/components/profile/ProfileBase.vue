@@ -41,7 +41,7 @@ defineProps({
             </div>
 
             <div class="col-md-9 pe-4">
-                <!-- contenido especifico por rol en el slot -->
+                contenido especifico por rol en el slot 
                 <slot>  
                 </slot>
             </div>

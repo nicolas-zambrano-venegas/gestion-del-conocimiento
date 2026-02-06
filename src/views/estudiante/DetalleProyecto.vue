@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import client from '../../sdk'
 
 const route = useRoute()
+const router = useRouter()
 const proyectoId = Number(route.params.id)
 
 const proyecto = ref(null)
@@ -17,7 +18,7 @@ const cargarProyecto = async () => {
 
   try {
     proyecto.value = await client.proyectos.get(proyectoId)
-    estudiantes.value = await client.proyectos.estudiantes(proyectoId)
+    estudiantes.value = await client.proyectos.getEstudiantes(proyectoId)
 
   } catch (err) {
     error.value =
@@ -29,6 +30,10 @@ const cargarProyecto = async () => {
   }
 }
 
+const volver = () => {
+  router.back()
+}
+
 onMounted(cargarProyecto)
 </script>
 
@@ -36,7 +41,15 @@ onMounted(cargarProyecto)
 <template>
   <div class="container mt-4">
 
-    <h3 class="mb-4">Detalle del Proyecto</h3>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="mb-4">Detalle del Proyecto</h3>
+      <button class="btn btn-secondary" @click="volver">
+        Volver
+      </button>
+
+    </div>
+
+
 
     <div v-if="loading">
       Cargando proyecto...

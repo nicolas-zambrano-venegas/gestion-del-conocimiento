@@ -7,6 +7,10 @@
     >
       <h2>Panel de Administración</h2>
 
+      <div class="d-flex justify-content-between align-items-center mb-4">
+
+      </div>
+
       <button
         class="btn btn-danger"
         @click="cerrarSesion"
@@ -169,19 +173,18 @@ export default {
 
     async cargarUsuarios() {
       try {
-        const { meta } = await client.usuarios.list({
-          page: 1,
-          pageSize: 1
-        });
+        const res = await client.usuarios.list({ page: 1, pageSize: 1 });
 
-        this.totalUsuarios = meta?.total || 0;
+        console.log("RESPUESTA COMPLETA:", res);
 
-      } catch {
+        this.totalUsuarios = res?.items?.length || 0;
+
+      } catch (e) {
+        console.error("Error cargando usuarios", e);
         this.totalUsuarios = 0;
       }
     },
-
-
+    
     cerrarSesion() {
       localStorage.clear();
       client.setToken(null);

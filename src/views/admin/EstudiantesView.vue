@@ -83,8 +83,8 @@
           >
 
             <td>{{ i+1 }}</td>
-            <td>{{ e.nombre }}</td>
-            <td>{{ e.cedula }}</td>
+            <td>{{ e.usuario?.nombre }}</td>
+            <td>{{ e.usuario?.cedula }}</td>
             <td>{{ e.programa?.nombre }}</td>
 
             <td>
@@ -164,27 +164,32 @@ export default {
   methods: {
 
     async load() {
-        console.log("ESTUDIANTES:", items);
-
       this.loading = true;
       this.error = "";
 
       try {
+        const [estRes, userRes, progRes] = await Promise.all([
+          client.estudiantes.list({ page: 1, pageSize: 500 }),
+          client.usuarios.list({ page: 1, pageSize: 500 }),
+          client.programas.list({ page: 1, pageSize: 500 })
+        ]);
 
-        const { items } = await client.estudiantes.list({
-          page: 1,
-          pageSize: 500
-        });
+        const usuarios = userRes.items;
+        const programas = progRes.items;
 
-        this.items = items;
+        // Unimos la información
+        this.items = estRes.items.map(e => ({
+          ...e,
+          usuario: usuarios.find(u => u.id === e.usuario_id),
+          programa: programas.find(p => p.id === e.programa_id)
+        }));
+
+        console.log("ESTUDIANTES UNIDOS:", this.items);
 
       } catch (e) {
-
         console.error(e);
         this.error = "Error cargando estudiantes";
-
       } finally {
-
         this.loading = false;
       }
     },

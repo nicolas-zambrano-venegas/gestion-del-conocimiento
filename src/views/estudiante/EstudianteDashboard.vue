@@ -97,8 +97,17 @@
 </template>
 
 <script>
-import client from "../../sdk"
-import UserInfoCard from "../../components/user/UserInfoCard.vue"
+import client from "../../sdk";
+import UserInfoCard from "../../components/user/UserInfoCard.vue";
+
+/* Leer token */
+function parseJwt(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
+}
 
 export default {
   name: "EstudianteDashboard",
@@ -114,7 +123,6 @@ export default {
       loading: true,
       error: null,
 
-     
       placeholderUser: {
         nombres: "Cargando...",
         apellidos: "",
@@ -122,50 +130,98 @@ export default {
         activo: false,
         foto: ""
       }
-    }
+    };
   },
 
   async mounted() {
-    try {
-    
-      this.estudiante = await client.estudiante
+    console.log("ENTRÓ AL DASHBOARD");
 
-      if (this.estudiante) {
-        this.proyecto = await this.estudiante.proyecto
+    try {
+      this.loading = true;
+
+      /* 1️⃣ Leer token */
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("No hay token");
+      }
+
+      const payload = parseJwt(token);
+
+      console.log("PAYLOAD:", payload);
+
+      const cedula = payload.sub;
+
+      /* 2️⃣ Traer usuarios */
+      const res = await client.usuarios.list();
+
+      console.log("USUARIOS:", res);
+
+      /* 3️⃣ Buscar usuario actual */
+      const usuario = res.items.find(
+        u => u.cedula === cedula
+      );
+
+      console.log("USUARIO FILTRADO:", usuario);
+
+      if (!usuario) {
+        throw new Error("Usuario no encontrado");
+      }
+
+      /* 4️⃣ Mapear nombres */
+      this.estudiante = {
+        ...usuario,
+        nombres: usuario.nombre || "",
+        apellidos: ""
+      };
+
+      /* 5️⃣ Buscar proyecto */
+      const proyectos = await client.proyectos.list({
+        estudiante_id: this.estudiante.id
+      });
+
+      console.log("PROYECTOS:", proyectos);
+
+      if (proyectos.items && proyectos.items.length) {
+        this.proyecto = proyectos.items[0];
+      } else {
+        this.proyecto = null;
       }
 
     } catch (e) {
-      console.error("Error cargando estudiante:", e)
-      this.error = "No se pudo cargar la información"
-      
+      console.error("Error dashboard:", e);
+      this.error = "No se pudo cargar la información";
+
     } finally {
-      this.loading = false
+      this.loading = false;
     }
   },
 
   methods: {
+
     goDetalleProyecto() {
-      if (!this.proyecto) return
+      if (!this.proyecto) return;
 
       this.$router.push({
         name: "DetalleProyecto",
         params: {
-          id: this.proyecto.codigo   
+          id: this.proyecto.codigo
         }
-      })
+      });
     },
 
     go(ruta) {
-      this.$router.push(ruta)
+      this.$router.push(ruta);
     },
 
     cerrarSesion() {
-      localStorage.clear()
-      client.setToken(null)
-      this.$router.push("/")
+      localStorage.clear();
+      client.setToken(null);
+      this.$router.push("/");
     }
+
   }
-}
+};
 </script>
 
 <style scoped>

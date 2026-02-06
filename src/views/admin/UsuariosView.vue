@@ -2,13 +2,20 @@
   <div class="container mt-5">
 
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Gestión de Usuarios</h2>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestión de Usuarios</h2>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-secondary" @click="volver">
+        volver
+      </button>
 
       <button class="btn btn-danger" @click="cerrarSesion">
         Cerrar sesión
       </button>
     </div>
+  </div>
+
     <!-- Filtros -->
     <div class="card p-3 mb-3">
 
@@ -194,9 +201,9 @@ export default {
     this.search = "";
     this.rolFilter = 0;
     },
-    /* =====================
-       Activar / Desactivar
-    ===================== */
+
+      //  Activar / Desactivar
+  
     async toggleActivo(usuario) {
 
       const nuevoEstado = !usuario.activo;
@@ -253,9 +260,10 @@ export default {
     },
 
 
-    /* =====================
-       Cerrar sesión
-    ===================== */
+    volver() {
+      this.$router.push("/admin"); 
+    },
+
     cerrarSesion() {
 
       localStorage.clear();

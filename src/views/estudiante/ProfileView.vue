@@ -1,14 +1,33 @@
 <script setup>
-// import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import ProfileBase from '../../components/profile/ProfileBase.vue'
+import client from '../../sdk'
 
+const estudiante = ref(null)
+const loading = ref(true)
+const error = ref(null)
 
-const user = {
-    name: "nicolas zambrano",
-    rol: "estudiante",
-    program: "Ingenieria de Software",
-    photo: null 
-}
+const user = computed(() => {
+    if (!estudiante.value) return null
+    return {
+        name: `${estudiante.value.nombres || ''} ${estudiante.value.apellidos || ''}`.trim(),
+        rol: "estudiante",
+        program: estudiante.value.programa?.nombre || "No asignado",
+        photo: estudiante.value.foto || null 
+    }
+})
+
+onMounted(async () => {
+    try {
+        estudiante.value = await client.estudiante
+        console.log("Estudiante cargado en ProfileView:", estudiante.value)
+    } catch (e) {
+        console.error("Error cargando perfil:", e)
+        error.value = "No se pudo cargar la información del perfil"
+    } finally {
+        loading.value = false
+    }
+})
 
 const onPhotoUpdate = (file) => {
     console.log('archivo recibido:', file)
@@ -16,7 +35,13 @@ const onPhotoUpdate = (file) => {
 </script>
 
 <template>
-    <ProfileBase :user="user" editable>
+    <div v-if="loading" class="text-center mt-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+    <div v-else-if="error" class="alert alert-danger mt-5">{{ error }}</div>
+    <ProfileBase v-else :user="user" editable>
         <h5 class="mt-4"> mis proyectos</h5>
     </ProfileBase>
 </template>

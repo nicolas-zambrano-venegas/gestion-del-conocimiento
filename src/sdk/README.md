@@ -7,12 +7,12 @@ Este documento describe **todo lo que realmente existe** en el SDK ubicado en `s
 ---
 
 ## Índice
-
 - [1) Configuración general](#1-configuración-general)
 - [2) Cliente principal (Client)](#2-cliente-principal-client)
 - [3) HTTP Client (HttpClient)](#3-http-client-httpclient)
 - [4) Colecciones (Collection)](#4-colecciones-collection)
 - [5) Colecciones disponibles en el SDK](#5-colecciones-disponibles-en-el-sdk)
+- [5.9.1) Profesores](#591-clientprofesores)
 - [5.10) Propiedades por entidad](#510-propiedades-por-entidad-creación-filtros-actualización)
 - [5.11) Endpoints del backend sin colección en el SDK](#511-endpoints-del-backend-sin-colección-en-el-sdk)
 - [6) Métodos adicionales por colección](#6-métodos-adicionales-por-colección)
@@ -196,10 +196,13 @@ const proyecto = await client.getEstudianteProyecto(10);
 	- Todos los roles autenticados pueden ver **todos** los estudiantes y sus proyectos.
 - **Proyectos** (`/proyectos`):
 	- `GET /proyectos` y `GET /proyectos/:id` requieren token.
-	- `POST` requiere roles `DOCENTE`, `ADMIN` o `SUPERADMIN`.
-	- `PUT` permite actualizar; si el rol es `ESTUDIANTE`, solo puede editar su propio proyecto.
-	- `DELETE` requiere roles `ADMIN` o `SUPERADMIN`.
+	- `GET /proyectos` requiere token; estudiantes pueden **listar todos** los proyectos.
+	- `GET /proyectos/:id`: si el rol es `ESTUDIANTE`, solo puede **obtener** su propio proyecto.
+	- `POST`: estudiantes pueden **crear** su propio proyecto. Se mantiene acceso de `DOCENTE`, `ADMIN` y `SUPERADMIN`.
+	- `PUT`: si el rol es `ESTUDIANTE`, solo puede **editar** su propio proyecto. Se mantiene acceso de roles no estudiantes.
+	- `DELETE`: si el rol es `ESTUDIANTE`, solo puede **eliminar** su propio proyecto. Se mantiene acceso de roles no estudiantes.
 	- Endpoints de relación (`/proyectos/:id/estudiantes`, `/proyectos/:id/estudiantes/:estudiante_id`, `/proyectos/:id/programas/:programa_id`, `/proyectos/:id/temas/:tema_id`) requieren token y, en el caso de asignaciones, roles `DOCENTE`, `ADMIN` o `SUPERADMIN`.
+- **Profesores** (`/profesores`): requiere token para todas las operaciones.
 - **Calificaciones** (`/calificaciones`): todas las operaciones requieren rol distinto de `ESTUDIANTE`.
 
 ---
@@ -531,6 +534,8 @@ const actualizado = await client.proyectos.update(7, {
 
 **Nota:** el identificador de proyecto en el backend es `codigo`.
 
+**Permisos (estudiantes):** pueden listar todos los proyectos, pero solo pueden crear, obtener, editar y eliminar su propio proyecto.
+
 **Nota:** en `update()` no necesitas enviar todos los parámetros; puedes enviar solo los que cambian.
 
 ---
@@ -544,11 +549,13 @@ const { items } = await client.calificaciones.list();
 const calificacion = await client.calificaciones.get(10);
 const nuevo = await client.calificaciones.create({
 	evidencia_id: 7,
+	profesor_id: 3,
 	nota: 4.5,
 	observaciones: "Buen trabajo",
 	estado_id: 1
 });
 const actualizado = await client.calificaciones.update(10, {
+	profesor_id: 3,
 	nota: 4.8,
 	observaciones: "Excelente trabajo"
 });
@@ -556,7 +563,32 @@ const actualizado = await client.calificaciones.update(10, {
 
 **Explicación:** maneja la entidad de calificaciones.
 
+**Nota:** `profesor_id` es obligatorio y referencia a `profesores.usuario_id`.
+
 **Nota:** en `update()` no necesitas enviar todos los parámetros; puedes enviar solo los que cambian.
+
+---
+
+### 5.9.1 `client.profesores`
+**Qué hace:** opera sobre `/profesores`.
+
+**Ejemplos:**
+```js
+const { items } = await client.profesores.list();
+const profesor = await client.profesores.get(12);
+const nuevo = await client.profesores.create({
+	usuario_id: 12,
+	curso_asignado: 20241
+});
+const actualizado = await client.profesores.update(12, {
+	curso_asignado: 20242
+});
+await client.profesores.delete(12);
+```
+
+**Explicación:** maneja la entidad de profesores. También existen atajos en `Client`: `getProfesores`, `getProfesor`, `createProfesor`, `updateProfesor`, `deleteProfesor`.
+
+**Nota:** el identificador de profesor es `usuario_id` (PK/FK a `usuarios_gc.id`).
 
 ---
 
@@ -843,6 +875,7 @@ await client.proyectos.update(7, { titulo: "Proyecto Demo 2", estado_id: 2 });
 **Creación (POST /calificaciones)**
 - **Campos reales en el backend:**
 	- `evidencia_id` (number)
+	- `profesor_id` (number, FK a `profesores.usuario_id`)
 	- `nota` (number)
 	- `estado_id` (number)
 	- `observaciones` (string | null)
@@ -851,6 +884,7 @@ await client.proyectos.update(7, { titulo: "Proyecto Demo 2", estado_id: 2 });
 ```js
 await client.calificaciones.create({
 	evidencia_id: 7,
+	profesor_id: 3,
 	nota: 4.5,
 	observaciones: "Buen trabajo",
 	estado_id: 1
@@ -867,11 +901,45 @@ await client.calificaciones.list();
 
 **Actualización (PUT /calificaciones/:id)**
 - **Nota:** NO necesitas enviar todas las propiedades. Envía solo las que cambian.
-- **Campos comunes a actualizar:** `evidencia_id`, `nota`, `estado_id`, `observaciones`.
+- **Campos comunes a actualizar:** `evidencia_id`, `profesor_id`, `nota`, `estado_id`, `observaciones`.
 
 **Ejemplo de actualización parcial:**
 ```js
-await client.calificaciones.update(10, { nota: 4.8, observaciones: "Excelente trabajo" });
+await client.calificaciones.update(10, { profesor_id: 3, nota: 4.8, observaciones: "Excelente trabajo" });
+```
+
+---
+
+### 5.10.10 Profesores (`/profesores`)
+
+**Creación (POST /profesores)**
+- **Campos reales en el backend:**
+	- `usuario_id` (number, PK/FK a `usuarios_gc.id`)
+	- `curso_asignado` (number | null)
+
+**Ejemplo de creación:**
+```js
+await client.createProfesor({
+	usuario_id: 12,
+	curso_asignado: 20241
+});
+```
+
+**Filtros (GET /profesores)**
+- El endpoint `/profesores` **no tiene paginación ni filtros** en el backend actual. Cualquier parámetro extra será ignorado.
+
+**Ejemplo de filtros:**
+```js
+await client.getProfesores();
+```
+
+**Actualización (PUT /profesores/:usuario_id)**
+- **Nota:** NO necesitas enviar todas las propiedades. Envía solo las que cambian.
+- **Campos comunes a actualizar:** `curso_asignado`.
+
+**Ejemplo de actualización parcial:**
+```js
+await client.updateProfesor(12, { curso_asignado: 20242 });
 ```
 
 ---
@@ -917,7 +985,7 @@ await proyecto.refresh();
 **Ejemplo:**
 ```js
 const proyecto = await client.proyectos.get(7);
-await proyecto.calificar({ evidencia_id: 7, nota: 4.8, estado_id: 1 });
+await proyecto.calificar({ evidencia_id: 7, profesor_id: 3, nota: 4.8, estado_id: 1 });
 ```
 
 **Explicación:** delega a `client.calificaciones.create()` y requiere los campos reales de calificación.
@@ -1229,7 +1297,8 @@ const proyecto = await estudiante.proyecto;
 - `Client` con `retries`, `retryDelay`, `cacheTtl`, `fetcher`
 - `client.usuario`, `client.estudiante`
 - `client.getEstudianteProyecto`
-- `client.usuarios`, `client.roles`, `client.programas`, `client.estados`, `client.temas`, `client.evidencias`, `client.estudiantes`, `client.proyectos`, `client.calificaciones`
+- `client.getProfesores`, `client.getProfesor`, `client.createProfesor`, `client.updateProfesor`, `client.deleteProfesor`
+- `client.usuarios`, `client.roles`, `client.programas`, `client.estados`, `client.temas`, `client.evidencias`, `client.estudiantes`, `client.profesores`, `client.proyectos`, `client.calificaciones`
 - `client.http` (`get`, `post`, `put`, `delete`)
 - `list`, `get`, `create`, `update`, `delete`
 - `getEstudiantes` (proyectos)

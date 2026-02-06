@@ -9,6 +9,7 @@ import { ProgramasCollection } from "../collections/ProgramasCollection";
 import { EstadosCollection } from "../collections/EstadosCollection";
 import { EvidenciasCollection } from "../collections/EvidenciasCollection";
 import { TemasCollection } from "../collections/TemasCollection";
+import { ProfesoresCollection } from "../collections/ProfesoresCollection";
 import { Proyecto } from "../models/Proyecto";
 
 const decodeJwt = (token) => {
@@ -46,6 +47,7 @@ export class Client {
         this.estados = new EstadosCollection(this);
         this.evidencias = new EvidenciasCollection(this);
         this.temas = new TemasCollection(this);
+        this.profesores = new ProfesoresCollection(this);
 
         if (this._tokenPayload?.role) {
             this.role = this._tokenPayload.role;
@@ -187,5 +189,25 @@ export class Client {
         if (!estudianteId) return null;
         const data = await this.http.get(`/estudiantes/${estudianteId}/proyecto`);
         return new Proyecto(this, data);
+    }
+
+    getProfesores(params = {}, options = undefined) {
+        return this.profesores.list(params, options || undefined);
+    }
+
+    getProfesor(usuarioId, options = undefined) {
+        return this.profesores.get(usuarioId, options || undefined);
+    }
+
+    createProfesor(data) {
+        return this.profesores.create(data);
+    }
+
+    updateProfesor(usuarioId, data) {
+        return this.profesores.update(usuarioId, data);
+    }
+
+    deleteProfesor(usuarioId) {
+        return this.profesores.delete(usuarioId);
     }
 }

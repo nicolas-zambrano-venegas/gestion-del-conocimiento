@@ -7,3 +7,4 @@ const client = new Client({ baseUrl, token, retries: 1, retryDelay: 400 });
 export { Client };
 export default client;
 export * from "./security/password";
+export * from "./dto";

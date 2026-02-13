@@ -9,7 +9,7 @@
         class="btn btn-primary"
         @click="abrirModal()"
       >
-        + Nuevo Rol
+      Nuevo Rol
       </button>
     </div>
 

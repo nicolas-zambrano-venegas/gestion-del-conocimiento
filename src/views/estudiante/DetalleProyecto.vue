@@ -1,91 +1,144 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import client from '../../sdk'
-
-const route = useRoute()
-const router = useRouter()
-const proyectoId = Number(route.params.id)
-
-const proyecto = ref(null)
-const estudiantes = ref([])
-const loading = ref(false)
-const error = ref(null)
-
-const cargarProyecto = async () => {
-  loading.value = true
-  error.value = null
-
-  try {
-    proyecto.value = await client.proyectos.get(proyectoId)
-    estudiantes.value = await client.proyectos.getEstudiantes(proyectoId)
-
-  } catch (err) {
-    error.value =
-      err?.response?.data?.detail ||
-      err?.message ||
-      'No tienes permiso para ver este proyecto'
-  } finally {
-    loading.value = false
-  }
-}
-
-const volver = () => {
-  router.back()
-}
-
-onMounted(cargarProyecto)
-</script>
-
-
 <template>
-  <div class="container mt-4">
+  <div class="container mt-4" v-if="proyecto">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h3 class="mb-4">Detalle del Proyecto</h3>
-      <button class="btn btn-secondary" @click="volver">
-        Volver
-      </button>
+    <h3 class="mb-4">Detalle del Proyecto</h3>
 
-    </div>
-
-
-
-    <div v-if="loading">
-      Cargando proyecto...
-    </div>
-
-    <div v-if="error" class="alert alert-danger">
-      {{ error }}
-    </div>
-
-   
-    <div v-if="proyecto && !loading" class="card p-4 mb-4">
-      <h4 class="mb-2">{{ proyecto.titulo }}</h4>
-
-      <p><strong>Código:</strong> {{ proyecto.codigo }}</p>
+    <!-- DATOS PROYECTO -->
+    <div class="card shadow-sm mb-4 p-3">
+      <h5>{{ proyecto.titulo }}</h5>
       <p><strong>Nivel:</strong> {{ proyecto.nivel }}</p>
-      <p><strong>Estado:</strong> {{ proyecto.estado_id }}</p>
+      <p><strong>Estado:</strong> {{ estadoNombre(proyecto.estado_id) }}</p>
+    </div>
+
+    <!-- EVIDENCIAS -->
+    <h5>Evidencias</h5>
+
+    <div
+      v-if="evidencias.length === 0"
+      class="alert alert-info"
+    >
+      No hay evidencias registradas.
+    </div>
+
+    <div
+      v-for="e in evidencias"
+      :key="e.id"
+      class="card mb-3 p-3 shadow-sm"
+    >
+      <p><strong>Descripción:</strong> {{ e.descripcion }}</p>
       <p>
-        <strong>Activo:</strong>
-        <span v-if="proyecto.activo">Sí</span>
-        <span v-else>No</span>
+        <strong>Documento:</strong>
+        <a :href="e.url_pdf" target="_blank">Ver documento</a>
       </p>
     </div>
 
-    <div v-if="estudiantes.length" class="card p-4">
-      <h5 class="mb-3">Estudiantes del proyecto</h5>
+    <!-- RETROALIMENTACIÓN -->
+    <h5 class="mt-4">Retroalimentación del Docente</h5>
 
-      <ul class="list-group">
-        <li
-          v-for="estudiante in estudiantes"
-          :key="estudiante.id"
-          class="list-group-item"
-        >
-          {{ estudiante.nombres }} {{ estudiante.apellidos }}
-        </li>
-      </ul>
+    <div
+      v-if="calificaciones.length === 0"
+      class="alert alert-warning"
+    >
+    
+      Aún no hay calificaciones.
+    </div>
+
+    <div
+      v-for="c in calificaciones"
+      :key="c.id"
+      class="card p-3 mb-3 shadow-sm"
+    >
+      <p>
+        <strong>Profesor:</strong>
+        {{ nombreProfesor(c.profesor_id) }}
+      </p>
+
+      <p>
+        <strong>Nota:</strong>
+        {{ c.nota ?? 'Sin nota' }}
+      </p>
+
+      <p>
+        <strong>Observaciones:</strong>
+        {{ c.observaciones || 'Sin observaciones' }}
+      </p>
     </div>
 
   </div>
 </template>
+
+<script>
+import client from "../../sdk";
+
+export default {
+  name: "DetalleProyecto",
+
+  data() {
+    return {
+      proyecto: null,
+      evidencias: [],
+      calificaciones: [],
+      usuarios: [],
+      estados: []
+    };
+  },
+
+  async mounted() {
+    await this.load();
+  },
+
+  methods: {
+
+    async load() {
+      try {
+        const proyectoId = this.$route.params.id;
+        
+        // PROYECTO
+        this.proyecto = await client.proyectos.get(proyectoId);
+
+        // USUARIOS
+        const usuariosRes = await client.usuarios.list();
+        this.usuarios = usuariosRes.items;
+
+        // ESTADOS
+        const estadosRes = await client.estados.list();
+        this.estados = estadosRes.items;
+
+        // EVIDENCIAS
+        const evidenciasRes = await client.evidencias.list();
+        this.evidencias = evidenciasRes.items.filter(
+          e => Number(e.proyecto_id) === Number(proyectoId)
+        );
+
+        // CALIFICACIONES
+        const calificacionesRes = await client.calificaciones.list();
+        const evidenciaIds = this.evidencias.map(e => e.id);
+
+        this.calificaciones = calificacionesRes.items.filter(
+          c => evidenciaIds.includes(c.evidencia_id)
+        );
+
+        console.log("CALIFICACIONES:", this.calificaciones);
+
+      } catch (error) {
+        console.error("Error cargando detalle:", error);
+      }
+    },
+
+    nombreProfesor(profesorId) {
+      const profesor = this.usuarios.find(
+        u => Number(u.id) === Number(profesorId)
+      );
+      return profesor?.nombre || "Profesor";
+    },
+
+    estadoNombre(estadoId) {
+      const estado = this.estados.find(
+        e => Number(e.id) === Number(estadoId)
+      );
+      return estado?.nombre || estadoId;
+    }
+
+  }
+};
+</script>

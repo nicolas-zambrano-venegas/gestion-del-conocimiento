@@ -134,7 +134,7 @@ export default {
   },
 
   async mounted() {
-    console.log("ENTRÓ AL DASHBOARD");
+    
 
     try {
       this.loading = true;
@@ -147,22 +147,19 @@ export default {
       }
 
       const payload = parseJwt(token);
-
-      console.log("PAYLOAD:", payload);
-
       const cedula = payload.sub;
 
       /* 2️⃣ Traer usuarios */
       const res = await client.usuarios.list();
 
-      console.log("USUARIOS:", res);
+     
 
       /* 3️⃣ Buscar usuario actual */
       const usuario = res.items.find(
         u => u.cedula === cedula
       );
 
-      console.log("USUARIO FILTRADO:", usuario);
+    
 
       if (!usuario) {
         throw new Error("Usuario no encontrado");
@@ -180,7 +177,6 @@ export default {
         estudiante_id: this.estudiante.id
       });
 
-      console.log("PROYECTOS:", proyectos);
 
       if (proyectos.items && proyectos.items.length) {
         this.proyecto = proyectos.items[0];

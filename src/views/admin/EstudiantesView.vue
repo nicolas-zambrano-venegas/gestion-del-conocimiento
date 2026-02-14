@@ -169,9 +169,9 @@ export default {
 
       try {
         const [estRes, userRes, progRes] = await Promise.all([
-          client.estudiantes.list({ page: 1, pageSize: 500 }),
-          client.usuarios.list({ page: 1, pageSize: 500 }),
-          client.programas.list({ page: 1, pageSize: 500 })
+          client.estudiantes.list({ page: 1, page_size: 500 }),
+          client.usuarios.list({ page: 1, page_size: 500 }),
+          client.programas.list({ page: 1, page_size: 500 })
         ]);
 
         const usuarios = userRes.items;

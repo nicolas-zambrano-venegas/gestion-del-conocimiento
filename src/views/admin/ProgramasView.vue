@@ -1,23 +1,18 @@
 <template>
   <div class="container mt-4">
 
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-
       <h2>Programas Académicos</h2>
 
       <button class="btn btn-primary" @click="toggleForm">
         {{ showForm ? "Cerrar" : "Nuevo programa" }}
       </button>
-
     </div>
 
-    <!-- Error -->
     <div v-if="error" class="alert alert-danger">
       {{ error }}
     </div>
 
-    <!-- Formulario -->
     <div v-if="showForm" class="card p-3 mb-4 shadow-sm">
 
       <h5 class="mb-3">
@@ -38,7 +33,7 @@
           </div>
 
           <div class="col-md-4">
-            <div class="form-check mt-2">
+            <div class="form-check form-switch mt-2">
               <input
                 v-model="form.activo"
                 class="form-check-input"
@@ -62,7 +57,6 @@
       </form>
     </div>
 
-    <!-- Tabla -->
     <div class="card shadow-sm">
 
       <div v-if="loading" class="p-3 text-muted">
@@ -75,8 +69,8 @@
           <tr>
             <th>#</th>
             <th>Nombre</th>
-            <th>Estado</th>
-            <th width="160">Acciones</th>
+            <th class="text-center">Activo</th>
+            <th width="120">Editar</th>
           </tr>
         </thead>
 
@@ -88,29 +82,29 @@
 
             <td>{{ p.nombre }}</td>
 
-            <td>
-              <span
-                class="badge"
-                :class="p.activo ? 'bg-success' : 'bg-secondary'"
-              >
-                {{ p.activo ? "Activo" : "Inactivo" }}
-              </span>
+            <td class="text-center">
+
+              <div class="form-check form-switch d-inline-block">
+
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  :checked="p.activo"
+                  @change="toggleActivo(p)"
+                  style="cursor:pointer;"
+                />
+
+              </div>
+
             </td>
 
             <td>
 
               <button
-                class="btn btn-sm btn-warning me-1"
+                class="btn btn-sm btn-warning"
                 @click="edit(p)"
               >
                 Editar
-              </button>
-
-              <button
-                class="btn btn-sm btn-danger"
-                @click="toggleActivo(p)"
-              >
-                {{ p.activo ? "Desactivar" : "Activar" }}
               </button>
 
             </td>
@@ -135,19 +129,15 @@ export default {
 
   data() {
     return {
-
       items: [],
       loading: true,
       error: "",
-
       showForm: false,
       editingId: null,
-
       form: {
         nombre: "",
         activo: true
       }
-
     };
   },
 
@@ -157,9 +147,6 @@ export default {
 
   methods: {
 
-    /* =====================
-       Cargar programas
-    ===================== */
     async load() {
 
       this.loading = true;
@@ -170,7 +157,7 @@ export default {
         const { items } = await client.programas.list();
         this.items = items;
 
-      } catch (e) {
+      } catch {
 
         this.error = "Error cargando programas";
 
@@ -180,10 +167,6 @@ export default {
       }
     },
 
-
-    /* =====================
-       Form
-    ===================== */
     toggleForm() {
 
       this.showForm = !this.showForm;
@@ -206,17 +189,12 @@ export default {
     edit(p) {
 
       this.showForm = true;
-
       this.editingId = p.id;
 
       this.form.nombre = p.nombre;
       this.form.activo = p.activo;
     },
 
-
-    /* =====================
-       CRUD
-    ===================== */
     async onSubmit() {
 
       this.error = "";
@@ -248,7 +226,6 @@ export default {
       }
     },
 
-
     async toggleActivo(p) {
 
       const nuevo = !p.activo;
@@ -261,7 +238,7 @@ export default {
 
         p.activo = nuevo;
 
-      } catch (e) {
+      } catch {
 
         alert("No se pudo cambiar estado");
       }
@@ -274,5 +251,9 @@ export default {
 <style scoped>
 .table td {
   vertical-align: middle;
+}
+
+.form-switch .form-check-input {
+  cursor: pointer;
 }
 </style>

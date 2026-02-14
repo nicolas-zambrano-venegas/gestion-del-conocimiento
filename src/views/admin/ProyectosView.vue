@@ -1,95 +1,89 @@
 <template>
   <div class="container mt-4">
 
-    <!-- Header -->
     <div class="d-flex justify-content-between mb-3">
-
       <h2>Gestión de Proyectos</h2>
 
-      <button class="btn btn-secondary" @click="load">
+      <button class="btn btn-primary" @click="load">
         Recargar
       </button>
-
     </div>
 
-    <!-- Error -->
     <div v-if="error" class="alert alert-danger">
       {{ error }}
     </div>
 
-    <!-- Loading -->
     <div v-if="loading" class="text-muted">
       Cargando proyectos...
     </div>
 
-    <!-- Tabla -->
-    <!-- Sin datos -->
-<div
-  v-if="!loading && items.length === 0"
-  class="alert alert-info text-center"
->
-  📭 No hay proyectos registrados aún.
-</div>
+    <div
+      v-if="!loading && items.length === 0"
+      class="alert alert-info text-center"
+    >
+      📭 No hay proyectos registrados aún.
+    </div>
 
-<!-- Tabla -->
-<div v-else-if="!loading" class="card shadow-sm">
+    <div v-else-if="!loading" class="card shadow-sm">
 
-  <table class="table table-hover mb-0">
+      <table class="table table-hover mb-0">
 
-    <thead class="table-light">
-      <tr>
-        <th>#</th>
-        <th>Título</th>
-        <th>Estudiante</th>
-        <th>Programa</th>
-        <th>Asesor</th>
-        <th>Estado</th>
-        <th width="160">Acción</th>
-      </tr>
-    </thead>
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Título</th>
+            <th>Estudiante</th>
+            <th>Programa</th>
+            <th>Asesor</th>
+            <th>Estado</th>
+            <th width="120">Editar</th>
+          </tr>
+        </thead>
 
-    <tbody>
+        <tbody>
 
-      <tr v-for="(p,i) in items" :key="p.id">
+          <tr v-for="(p,i) in items" :key="p.id">
 
-        <td>{{ i+1 }}</td>
-        <td>{{ p.titulo }}</td>
-        <td>{{ p.estudiante?.nombre }}</td>
-        <td>{{ p.programa?.nombre }}</td>
-        <td>{{ p.docente?.nombre || "—" }}</td>
+            <td>{{ i+1 }}</td>
+            <td>{{ p.titulo }}</td>
+            <td>{{ p.estudiante?.nombre }}</td>
+            <td>{{ p.programa?.nombre }}</td>
+            <td>{{ p.docente?.nombre || "—" }}</td>
 
-        <td>
-          <span
-            class="badge"
-            :class="estadoClass(p.estado?.nombre)"
-          >
-            {{ p.estado?.nombre }}
-          </span>
-        </td>
+            <td style="width:200px">
 
-        <td>
-          <button
-            class="btn btn-sm btn-primary me-1"
-            @click="edit(p)"
-          >
-            Editar
-          </button>
+              <select
+                class="form-select form-select-sm"
+                :value="p.estado_id"
+                @change="changeEstado(p, $event)"
+              >
+                <option
+                  v-for="e in estados"
+                  :key="e.id"
+                  :value="e.id"
+                >
+                  {{ e.nombre }}
+                </option>
+              </select>
 
-          <button
-            class="btn btn-sm btn-warning"
-            @click="changeEstado(p)"
-          >
-            Estado
-          </button>
-        </td>
+            </td>
 
-      </tr>
+            <td>
+              <button
+                class="btn btn-sm btn-primary"
+                @click="edit(p)"
+              >
+                Editar
+              </button>
+            </td>
 
-    </tbody>
+          </tr>
 
-  </table>
+        </tbody>
 
-</div>
+      </table>
+
+    </div>
 
   </div>
 </template>
@@ -104,6 +98,7 @@ export default {
   data() {
     return {
       items: [],
+      estados: [],
       loading: true,
       error: ""
     };
@@ -122,14 +117,18 @@ export default {
 
       try {
 
-        const { items } = await client.proyectos.list({
-          page: 1,
-          pageSize: 200
-        });
+        const [proyRes, estadosRes] = await Promise.all([
+          client.proyectos.list({
+            page: 1,
+            pageSize: 200
+          }),
+          client.estados.list()
+        ]);
 
-        this.items = items;
+        this.items = proyRes.items;
+        this.estados = estadosRes.items;
 
-      } catch(e) {
+      } catch {
 
         this.error = "Error cargando proyectos";
 
@@ -139,49 +138,26 @@ export default {
       }
     },
 
-
     edit(p) {
-
       alert("Editar: " + p.titulo);
-
-      // Luego abrimos modal
     },
 
+    async changeEstado(p, event) {
 
-    async changeEstado(p) {
-
-      const nuevo = prompt(
-        "Nuevo estado ID:",
-        p.estado_id
-      );
-
-      if (!nuevo) return;
+      const nuevo = Number(event.target.value);
 
       try {
 
         await client.proyectos.update(p.id,{
-          estado_id: Number(nuevo)
+          estado_id: nuevo
         });
 
-        await this.load();
+        p.estado_id = nuevo;
+        p.estado = this.estados.find(e => e.id === nuevo);
 
-      } catch(e) {
+      } catch {
 
         alert("No se pudo cambiar estado");
-      }
-    },
-
-
-    estadoClass(nombre) {
-
-      switch(nombre){
-
-        case "Propuesta": return "bg-secondary";
-        case "En curso": return "bg-primary";
-        case "Finalizado": return "bg-success";
-        case "Rechazado": return "bg-danger";
-
-        default: return "bg-dark";
       }
     }
 

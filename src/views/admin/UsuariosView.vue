@@ -5,15 +5,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Gestión de Usuarios</h2>
 
-    <div class="d-flex gap-2">
-      <button class="btn btn-secondary" @click="volver">
-        volver
-      </button>
-
-      <button class="btn btn-danger" @click="cerrarSesion">
-        Cerrar sesión
-      </button>
-    </div>
+  
   </div>
 
     <!-- Filtros -->
@@ -45,8 +37,8 @@
         <!-- Reset -->
         <div class="col-md-2">
         <button
-            class="btn btn-secondary w-100"
-            @click="resetFilters"
+            class="btn btn-primary w-100"
+            @click="resetFilters" 
         >
             Limpiar
         </button>

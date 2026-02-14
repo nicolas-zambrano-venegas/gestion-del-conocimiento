@@ -105,7 +105,7 @@ export default {
 <style scoped>
 
 .admin-navbar {
-  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  background: linear-gradient(135deg, #0b5e3c, #146c43);
   border-radius: 14px;
   padding: 10px 16px;
 }

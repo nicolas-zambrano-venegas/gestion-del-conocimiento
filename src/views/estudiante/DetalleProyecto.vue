@@ -1,69 +1,123 @@
 <template>
-  <div class="container mt-4" v-if="proyecto">
+  <div class="detalle-wrapper" v-if="proyecto">
 
-    <h3 class="mb-4">Detalle del Proyecto</h3>
+    <div class="container py-4">
 
-    <!-- DATOS PROYECTO -->
-    <div class="card shadow-sm mb-4 p-3">
-      <h5>{{ proyecto.titulo }}</h5>
-      <p><strong>Nivel:</strong> {{ proyecto.nivel }}</p>
-      <p><strong>Estado:</strong> {{ estadoNombre(proyecto.estado_id) }}</p>
+      <!-- HEADER -->
+      <div class="header-box mb-4">
+
+        <div>
+          <h2 class="mb-1 fw-bold">
+            {{ proyecto.titulo }}
+          </h2>
+          <small class="text-muted">
+            Nivel {{ proyecto.nivel }}
+          </small>
+        </div>
+
+        <span
+          class="badge estado-badge"
+          :class="estadoClass(estadoNombre(proyecto.estado_id))"
+        >
+          {{ estadoNombre(proyecto.estado_id) }}
+        </span>
+
+      </div>
+
+      <!-- GRID -->
+      <div class="row g-4">
+
+        <!-- IZQUIERDA -->
+        <div class="col-lg-7">
+
+          <!-- EVIDENCIAS -->
+          <div class="section-card">
+
+            <h5 class="section-title">
+              📂 Evidencias
+            </h5>
+
+            <div
+              v-if="evidencias.length === 0"
+              class="empty-box"
+            >
+              No hay evidencias registradas.
+            </div>
+
+            <div
+              v-for="e in evidencias"
+              :key="e.id"
+              class="evidencia-card"
+            >
+              <div>
+                <p class="fw-semibold mb-1">
+                  {{ e.descripcion }}
+                </p>
+              </div>
+
+              <a
+                :href="e.url_pdf"
+                target="_blank"
+                class="btn btn-outline-success btn-sm"
+              >
+                Ver documento
+              </a>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- DERECHA -->
+        <div class="col-lg-5">
+
+          <div class="section-card">
+
+            <h5 class="section-title">
+              🎓 Retroalimentación
+            </h5>
+
+            <div
+              v-if="calificaciones.length === 0"
+              class="empty-box warning"
+            >
+              Aún no hay calificaciones.
+            </div>
+
+            <div
+              v-for="c in calificaciones"
+              :key="c.id"
+              class="feedback-card"
+            >
+
+              <div class="d-flex justify-content-between align-items-center mb-2">
+
+                <div class="fw-semibold">
+                  {{ nombreProfesor(c.profesor_id) }}
+                </div>
+
+                <div
+                  class="nota-circle"
+                  :class="notaClass(c.nota)"
+                >
+                  {{ c.nota ?? "-" }}
+                </div>
+
+              </div>
+
+              <p class="text-muted small mb-0">
+                {{ c.observaciones || "Sin observaciones" }}
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
-
-    <!-- EVIDENCIAS -->
-    <h5>Evidencias</h5>
-
-    <div
-      v-if="evidencias.length === 0"
-      class="alert alert-info"
-    >
-      No hay evidencias registradas.
-    </div>
-
-    <div
-      v-for="e in evidencias"
-      :key="e.id"
-      class="card mb-3 p-3 shadow-sm"
-    >
-      <p><strong>Descripción:</strong> {{ e.descripcion }}</p>
-      <p>
-        <strong>Documento:</strong>
-        <a :href="e.url_pdf" target="_blank">Ver documento</a>
-      </p>
-    </div>
-
-    <!-- RETROALIMENTACIÓN -->
-    <h5 class="mt-4">Retroalimentación del Docente</h5>
-
-    <div
-      v-if="calificaciones.length === 0"
-      class="alert alert-warning"
-    >
-    
-      Aún no hay calificaciones.
-    </div>
-
-    <div
-      v-for="c in calificaciones"
-      :key="c.id"
-      class="card p-3 mb-3 shadow-sm"
-    >
-      <p>
-        <strong>Profesor:</strong>
-        {{ nombreProfesor(c.profesor_id) }}
-      </p>
-
-      <p>
-        <strong>Nota:</strong>
-        {{ c.nota ?? 'Sin nota' }}
-      </p>
-
-      <p>
-        <strong>Observaciones:</strong>
-        {{ c.observaciones || 'Sin observaciones' }}
-      </p>
-    </div>
-
   </div>
 </template>
 
@@ -71,6 +125,7 @@
 import client from "../../sdk";
 
 export default {
+
   name: "DetalleProyecto",
 
   data() {
@@ -90,39 +145,31 @@ export default {
   methods: {
 
     async load() {
-      try {
-        const proyectoId = this.$route.params.id;
-        
-        // PROYECTO
-        this.proyecto = await client.proyectos.get(proyectoId);
 
-        // USUARIOS
-        const usuariosRes = await client.usuarios.list();
-        this.usuarios = usuariosRes.items;
+      const proyectoId = this.$route.params.id;
 
-        // ESTADOS
-        const estadosRes = await client.estados.list();
-        this.estados = estadosRes.items;
+      const [proyecto, usuariosRes, estadosRes, evidenciasRes, calificacionesRes] =
+        await Promise.all([
+          client.proyectos.get(proyectoId),
+          client.usuarios.list(),
+          client.estados.list(),
+          client.evidencias.list(),
+          client.calificaciones.list()
+        ]);
 
-        // EVIDENCIAS
-        const evidenciasRes = await client.evidencias.list();
-        this.evidencias = evidenciasRes.items.filter(
-          e => Number(e.proyecto_id) === Number(proyectoId)
-        );
+      this.proyecto = proyecto;
+      this.usuarios = usuariosRes.items;
+      this.estados = estadosRes.items;
 
-        // CALIFICACIONES
-        const calificacionesRes = await client.calificaciones.list();
-        const evidenciaIds = this.evidencias.map(e => e.id);
+      this.evidencias = evidenciasRes.items.filter(
+        e => Number(e.proyecto_id) === Number(proyectoId)
+      );
 
-        this.calificaciones = calificacionesRes.items.filter(
-          c => evidenciaIds.includes(c.evidencia_id)
-        );
+      const evidenciaIds = this.evidencias.map(e => e.id);
 
-        console.log("CALIFICACIONES:", this.calificaciones);
-
-      } catch (error) {
-        console.error("Error cargando detalle:", error);
-      }
+      this.calificaciones = calificacionesRes.items.filter(
+        c => evidenciaIds.includes(c.evidencia_id)
+      );
     },
 
     nombreProfesor(profesorId) {
@@ -132,13 +179,113 @@ export default {
       return profesor?.nombre || "Profesor";
     },
 
-    estadoNombre(estadoId) {
+    estadoNombre(id) {
       const estado = this.estados.find(
-        e => Number(e.id) === Number(estadoId)
+        e => Number(e.id) === Number(id)
       );
-      return estado?.nombre || estadoId;
+      return estado?.nombre || id;
+    },
+
+    estadoClass(nombre) {
+      switch(nombre){
+        case "Propuesta": return "bg-secondary";
+        case "En curso": return "bg-primary";
+        case "Finalizado": return "bg-success";
+        case "Rechazado": return "bg-danger";
+        default: return "bg-dark";
+      }
+    },
+
+    notaClass(nota){
+      if (nota == null) return "bg-secondary";
+      if (nota >= 4.5) return "bg-success";
+      if (nota >= 3) return "bg-warning";
+      return "bg-danger";
     }
 
   }
 };
 </script>
+
+<style scoped>
+
+.detalle-wrapper {
+  background: linear-gradient(180deg, #f8fafc, #eef2f7);
+  min-height: 100vh;
+}
+
+.header-box {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.estado-badge {
+  padding: 0.6rem 1rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+}
+
+.section-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+}
+
+.evidencia-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 12px;
+  background: #f9fafb;
+  margin-bottom: 0.8rem;
+  transition: 0.2s ease;
+}
+
+.evidencia-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.feedback-card {
+  padding: 1rem;
+  border-radius: 12px;
+  background: #f9fafb;
+  margin-bottom: 1rem;
+}
+
+.nota-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+}
+
+.empty-box {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px dashed #d1d5db;
+  color: #6b7280;
+}
+
+.empty-box.warning {
+  background: #fff8e1;
+  border-color: #ffc107;
+}
+
+</style>

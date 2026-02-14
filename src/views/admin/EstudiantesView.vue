@@ -1,7 +1,6 @@
 <template>
   <div class="container mt-4">
 
-    <!-- Header -->
     <div class="d-flex justify-content-between mb-3">
       <h3>Gestión de Estudiantes</h3>
 
@@ -13,10 +12,7 @@
       </button>
     </div>
 
-
-    <!-- Filtros -->
     <div class="row mb-3">
-
       <div class="col-md-6">
         <input
           v-model="search"
@@ -25,11 +21,8 @@
           placeholder="Buscar por nombre o cédula"
         />
       </div>
-
     </div>
 
-
-    <!-- Error -->
     <div
       v-if="error"
       class="alert alert-danger"
@@ -37,8 +30,6 @@
       {{ error }}
     </div>
 
-
-    <!-- Loading -->
     <div
       v-if="loading"
       class="text-muted"
@@ -46,8 +37,6 @@
       Cargando estudiantes...
     </div>
 
-
-    <!-- Sin datos -->
     <div
       v-else-if="filtrados.length === 0"
       class="alert alert-info text-center"
@@ -55,13 +44,10 @@
       No hay estudiantes registrados
     </div>
 
-
-    <!-- Tabla -->
     <div
       v-else
       class="card shadow-sm"
     >
-
       <table class="table table-hover mb-0">
 
         <thead class="table-light">
@@ -70,8 +56,7 @@
             <th>Nombre</th>
             <th>Cédula</th>
             <th>Programa</th>
-            <th>Estado</th>
-            <th width="120">Acción</th>
+            <th class="text-center">Activo</th>
           </tr>
         </thead>
 
@@ -87,24 +72,19 @@
             <td>{{ e.usuario?.cedula }}</td>
             <td>{{ e.programa?.nombre }}</td>
 
-            <td>
-              <span
-                class="badge"
-                :class="e.activo ? 'bg-success' : 'bg-danger'"
-              >
-                {{ e.activo ? "Activo" : "Inactivo" }}
-              </span>
-            </td>
+            <td class="text-center">
 
-            <td>
+              <div class="form-check form-switch d-inline-block">
 
-              <button
-                class="btn btn-sm"
-                :class="e.activo ? 'btn-danger' : 'btn-success'"
-                @click="toggle(e)"
-              >
-                {{ e.activo ? "Desactivar" : "Activar" }}
-              </button>
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  :checked="e.usuario?.activo"
+                  @change="toggle(e)"
+                  style="cursor:pointer;"
+                />
+
+              </div>
 
             </td>
 
@@ -113,12 +93,10 @@
         </tbody>
 
       </table>
-
     </div>
 
   </div>
 </template>
-
 
 <script>
 import client from "../../sdk";
@@ -128,16 +106,12 @@ export default {
 
   data() {
     return {
-
       items: [],
-
       loading: true,
       error: "",
-
       search: ""
     };
   },
-
 
   computed: {
 
@@ -148,18 +122,16 @@ export default {
       const s = this.search.toLowerCase();
 
       return this.items.filter(e =>
-        e.nombre?.toLowerCase().includes(s) ||
-        e.cedula?.includes(s)
+        e.usuario?.nombre?.toLowerCase().includes(s) ||
+        e.usuario?.cedula?.includes(s)
       );
     }
 
   },
 
-
   async mounted() {
     await this.load();
   },
-
 
   methods: {
 
@@ -168,6 +140,7 @@ export default {
       this.error = "";
 
       try {
+
         const [estRes, userRes, progRes] = await Promise.all([
           client.estudiantes.list({ page: 1, page_size: 500 }),
           client.usuarios.list({ page: 1, page_size: 500 }),
@@ -177,14 +150,11 @@ export default {
         const usuarios = userRes.items;
         const programas = progRes.items;
 
-        // Unimos la información
         this.items = estRes.items.map(e => ({
           ...e,
           usuario: usuarios.find(u => u.id === e.usuario_id),
           programa: programas.find(p => p.id === e.programa_id)
         }));
-
-        console.log("ESTUDIANTES UNIDOS:", this.items);
 
       } catch (e) {
         console.error(e);
@@ -194,21 +164,19 @@ export default {
       }
     },
 
-
     async toggle(e) {
 
-      if (!confirm("¿Cambiar estado?")) return;
+      const nuevoEstado = !e.usuario.activo;
 
       try {
 
-        await client.estudiantes.update(e.id, {
-          activo: !e.activo
+        await client.usuarios.update(e.usuario.id, {
+          activo: nuevoEstado
         });
 
-        await this.load();
+        e.usuario.activo = nuevoEstado;
 
       } catch {
-
         alert("No se pudo actualizar");
       }
     }

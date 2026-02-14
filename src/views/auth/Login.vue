@@ -43,7 +43,7 @@
         <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
 
         <div class="text-center mt-4 text-muted small">
-          © 2026 · Gestión del Conocimiento
+          ©  Grupo de investigación Ingenieria de software - Seccional Girardot 2026  
         </div>
       </div>
     </div>

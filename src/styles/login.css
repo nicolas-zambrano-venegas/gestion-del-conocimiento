@@ -48,10 +48,9 @@
 }
 
 .logo-udc {
-  width: auto;
+  max-width: 120px; 
   height: auto;
 }
-
 @media (max-width: 768px) {
   .login-form {
     width: 100%;

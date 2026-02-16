@@ -1,120 +1,156 @@
 <template>
-  <!-- Solo renderiza si user ya tiene datos -->
-  <div v-if="userData && !loading" class="card p-3 shadow-sm user-card">
-    <div class="d-flex align-items-center gap-3">
+  <div v-if="userData && !loading" class="card p-4 shadow-sm user-card">
 
-      <!-- Foto del usuario o avatar automático -->
-      <img
-        :src="fotoFinal"
-        class="user-avatar"
-        alt="Foto usuario"
-      />
+    <div class="d-flex align-items-center gap-4">
 
-      <div class="flex-grow-1">
-        <!-- Nombre completo -->
-        <h5 class="mb-1">{{ nombresCompletos }}</h5>
+      <!-- FOTO -->
+      <div class="position-relative">
+        <img
+          :src="fotoFinal"
+          class="user-avatar"
+          alt="Foto usuario"
+        />
 
-        <!-- Rol o programa académico -->
-        <div class="text-muted small">
-          {{ userData.rol || userData.programa?.nombre || 'Sin rol' }}
-        </div>
+        <!-- Botón cambiar foto -->
+        <label class="btn-change-photo">
+          <img src="../../assets/icons/camara.svg" class="icon-svg" />
+
+          <input
+            type="file"
+            hidden
+            @change="subirFoto"
+            accept="image/*"
+          />
+        </label>
       </div>
 
-      <!-- Badge de estado -->
-      <span
-        class="badge"
-        :class="userData.activo ? 'bg-success' : 'bg-secondary'"
-      >
-        {{ userData.activo ? 'Activo' : 'Inactivo' }}
-      </span>
+      <!-- INFO -->
+      <div class="flex-grow-1">
+        <h4 class="mb-1">{{ nombresCompletos }}</h4>
+
+        <div class="text-muted">
+          {{ userData.rol || userData.programa?.nombre || 'Estudiante' }}
+        </div>
+
+        <span
+          class="badge mt-2"
+          :class="userData.activo ? 'bg-success' : 'bg-secondary'"
+        >
+          {{ userData.activo ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
 
     </div>
   </div>
 
-  <!-- Mensaje mientras se cargan los datos -->
   <div v-else class="text-center text-muted p-3">
     Cargando información del usuario...
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import client from '../../sdk'
 
 const props = defineProps({
-  user: {
-    type: Object,
-    required: false,
-    default: null
-  }
+  user: Object
 })
 
-const estudiante = ref(null)
-const loading = ref(true)
+const loading = ref(false)
 
-// Si se pasa user como prop, usarlo; si no, cargar del cliente
-const userData = computed(() => {
-  if (props.user) return props.user
-  return estudiante.value
-})
+/* Datos del usuario */
+const userData = computed(() => props.user)
 
-// Computed para nombre completo
+/* Nombre completo */
 const nombresCompletos = computed(() => {
-  const user = userData.value
-  if (!user) return ''
-  if (user.nombre) return user.nombre
-  return `${user.nombres || ''} ${user.apellidos || ''}`.trim()
+  if (!userData.value) return ''
+  return userData.value.nombre ||
+         `${userData.value.nombres || ''} ${userData.value.apellidos || ''}`.trim()
 })
 
-// Computed para la foto
+/* FOTO FINAL */
 const fotoFinal = computed(() => {
-  const user = userData.value
-  if (!user) return ''
-  return user.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(nombresCompletos.value)}`
+  if (!userData.value) return ''
+
+  if (userData.value.foto) {
+    return userData.value.foto.startsWith('data:')
+      ? userData.value.foto
+      : `data:image/png;base64,${userData.value.foto}`
+  }
+
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(nombresCompletos.value)}`
 })
 
-onMounted(async () => {
-  // Solo cargar si no se pasó un user como prop
-  if (!props.user) {
+/* SUBIR FOTO */
+const subirFoto = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const reader = new FileReader()
+
+  reader.onload = async () => {
     try {
-      estudiante.value = await client.estudiante
-      // Si el SDK no devuelve estudiante, intentar tomar el primero de la colección (ambiente de prueba)
-      if (!estudiante.value) {
-        try {
-          const res = await client.estudiantes.list()
-          if (res && Array.isArray(res.items) && res.items.length) {
-            estudiante.value = res.items[0]
-          }
-        } catch (inner) {
-          console.warn('No se pudo recuperar lista de estudiantes:', inner)
-        }
-      }
-    } catch (e) {
-      console.error("Error cargando estudiante:", e)
+      loading.value = true
+
+      const base64 = reader.result
+
+      await client.usuarios.update(userData.value.id, {
+        foto: base64
+      })
+
+      userData.value.foto = base64
+
+    } catch (error) {
+      console.error("Error subiendo foto:", error)
+      alert("No se pudo subir la foto")
     } finally {
       loading.value = false
     }
-  } else {
-    loading.value = false
   }
-})
+
+  reader.readAsDataURL(file)
+}
 </script>
 
 <style scoped>
 .user-card {
-  border-radius: 14px;
-  background-color: #fff;
-  transition: box-shadow 0.2s;
-}
-
-.user-card:hover {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
 }
 
 .user-avatar {
-  width: 64px;
-  height: 64px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   object-fit: cover;
+  border: 4px solid #e9ecef;
+}
+
+/* Botón flotante */
+.btn-change-photo {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #0d6efd;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.btn-change-photo:hover {
+  background: #0b5ed7;
+  transform: scale(1.1);
+}
+
+.icon-svg {
+  width: 18px;
+  height: 18px;
 }
 </style>

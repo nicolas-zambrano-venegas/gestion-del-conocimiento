@@ -1,12 +1,7 @@
 <template>
   <div class="container mt-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Panel Estudiante</h2>
-      <button class="btn btn-danger" @click="cerrarSesion">
-        Cerrar sesion
-      </button>
-    </div>
+   
 
     <UserInfoCard
       v-if="estudiante"
@@ -139,7 +134,7 @@ export default {
     try {
       this.loading = true;
 
-      /* 1️⃣ Leer token */
+      /* 1 Leer token */
       const token = localStorage.getItem("token");
 
       if (!token) {
@@ -149,12 +144,12 @@ export default {
       const payload = parseJwt(token);
       const cedula = payload.sub;
 
-      /* 2️⃣ Traer usuarios */
+      /* 2 Traer usuarios */
       const res = await client.usuarios.list();
 
      
 
-      /* 3️⃣ Buscar usuario actual */
+      /* 3 Buscar usuario actual */
       const usuario = res.items.find(
         u => u.cedula === cedula
       );
@@ -165,14 +160,14 @@ export default {
         throw new Error("Usuario no encontrado");
       }
 
-      /* 4️⃣ Mapear nombres */
+      /* 4 Mapear nombres */
       this.estudiante = {
         ...usuario,
         nombres: usuario.nombre || "",
         apellidos: ""
       };
 
-      /* 5️⃣ Buscar proyecto */
+      /* 5 Buscar proyecto */
       const proyectos = await client.proyectos.list({
         estudiante_id: this.estudiante.id
       });

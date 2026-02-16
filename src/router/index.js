@@ -10,12 +10,13 @@ import UsuariosView from "../views/admin/UsuariosView.vue"
 import ProgramasView from "../views/admin/ProgramasView.vue"
 import ProyectosView from "../views/admin/ProyectosView.vue"
 
-import DocenteDashboard from '../views/docente/DocenteDashboard.vue'
+import EstudianteNav from "../diseños/EstudianteNav.vue"
 import EstudianteDashboard from '../views/estudiante/EstudianteDashboard.vue'
 import ExplorarRepositorio from '../views/estudiante/ExplorarRepositorio.vue'
 import NuevoProyecto from '../views/estudiante/NuevoProyecto.vue'
 import DetalleProyecto from '../views/estudiante/DetalleProyecto.vue'
 
+import DocenteDashboard from '../views/docente/DocenteDashboard.vue'
 
 
 const router = createRouter({
@@ -77,6 +78,39 @@ const router = createRouter({
       ]
     },
 
+    {
+      path: '/estudiante',
+      component: EstudianteNav,
+      meta: { requiresAuth: true, role: 'ESTUDIANTE' },
+
+      children: [
+
+        {
+          path: '',
+          name: 'estudiante',
+          component: EstudianteDashboard
+        },
+
+        {
+          path: '/estudiante/detalleproyecto/:id',
+          name: 'DetalleProyecto',
+          component: DetalleProyecto
+        },
+
+        {
+          path: '/explorar',
+          name: 'ExplorarRepositorio',
+          component: ExplorarRepositorio
+        },
+
+        {
+          path: '/estudiante/NuevoProyecto',
+          name: 'NuevoProyecto',
+          component: NuevoProyecto
+        }
+
+      ]
+    },
 
     {
       path: '/docente',
@@ -86,33 +120,6 @@ const router = createRouter({
     },
 
 
-    {
-      path: '/estudiante',
-      name: 'estudiante',
-      component: EstudianteDashboard,
-      meta: { requiresAuth: true, role: 'ESTUDIANTE' }
-    },
-
-    {
-      path: '/explorar',
-      name: 'ExplorarRepositorio',
-      component: ExplorarRepositorio,
-      meta: { requiresAuth: true, role: 'ESTUDIANTE' }
-    },
-
-    {
-      path: '/estudiante/NuevoProyecto',
-      name: 'NuevoProyecto',
-      component: NuevoProyecto,
-      meta: { requiresAuth: true, role: 'ESTUDIANTE' }
-    },
-
-    {
-      path: '/estudiante/detalleproyecto/:id',
-      name: 'DetalleProyecto',
-      component: DetalleProyecto,
-      meta: { requiresAuth: true, role: 'ESTUDIANTE' }
-    },
 
     {
       path: '/characterization',

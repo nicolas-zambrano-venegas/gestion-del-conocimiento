@@ -3,7 +3,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>Explorar Repositorios</h2>
-      <button class="btn btn-secondary" @click="$router.back()">
+      <button class="btn btn-primary" @click="$router.back()">
         Volver
       </button>
     </div>

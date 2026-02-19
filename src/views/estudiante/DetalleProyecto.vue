@@ -22,6 +22,10 @@
           {{ estadoNombre(proyecto.estado_id) }}
         </span>
 
+        <button class="btn btn-primary" @click="$router.back()">
+          volver
+        </button>
+
       </div>
 
       <!-- GRID -->
@@ -34,7 +38,7 @@
           <div class="section-card">
 
             <h5 class="section-title">
-              📂 Evidencias
+              Evidencias
             </h5>
 
             <div
@@ -74,7 +78,7 @@
           <div class="section-card">
 
             <h5 class="section-title">
-              🎓 Retroalimentación
+              Retroalimentación
             </h5>
 
             <div
@@ -266,13 +270,14 @@ export default {
 }
 
 .nota-circle {
+  
   width: 42px;
   height: 42px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: black;
   font-weight: 600;
 }
 

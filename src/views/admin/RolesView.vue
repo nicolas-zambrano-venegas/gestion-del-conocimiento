@@ -4,14 +4,21 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3>Gestión de Roles</h3>
+  
+      <div class ="d-flex gap-2">
 
-      <button
-        class="btn btn-primary"
-        @click="abrirModal()"
-      >
-      Nuevo Rol
-      </button>
+        <button
+          class="btn btn-primary"
+          @click="abrirModal()"
+        >
+        Nuevo Rol
+        </button>
+        <button class="btn btn-primary" @click="$router.back()">
+          volver
+        </button>
+      </div>
     </div>
+   
 
     <!-- Tabla -->
     <div class="card shadow-sm">

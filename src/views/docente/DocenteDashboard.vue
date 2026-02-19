@@ -207,6 +207,8 @@ import client from "../../sdk";
 
 export default {
   name: "DocenteDashboard",
+
+  //memeoria del componente
   data() {
     return {
       allProjects: [],
@@ -226,6 +228,8 @@ export default {
       loading: true
     };
   },
+
+  
   computed: {
     profesorNombre() {
       return this.usuario?.nombre || "";

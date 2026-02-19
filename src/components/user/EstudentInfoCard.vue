@@ -29,9 +29,9 @@
         <h4 class="mb-1">{{ nombresCompletos }}</h4>
 
         <div class="text-muted">
-          {{ userData.rol || userData.programa?.nombre || 'Estudiante' }}
-        </div>
+          {{ userData.rol || userData.programa?.nombre || 'estudiante' }}
 
+        </div>
         <span
           class="badge mt-2"
           :class="userData.activo ? 'bg-success' : 'bg-secondary'"
@@ -41,7 +41,14 @@
       </div>
 
     </div>
+
+    <hr class="my-4">
+
+    <div class="user-extra">
+      <slot></slot>
+    </div>
   </div>
+
 
   <div v-else class="text-center text-muted p-3">
     Cargando información del usuario...

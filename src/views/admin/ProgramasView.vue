@@ -4,9 +4,15 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2>Programas Académicos</h2>
 
-      <button class="btn btn-primary" @click="toggleForm">
-        {{ showForm ? "Cerrar" : "Nuevo programa" }}
-      </button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" @click="toggleForm">
+          {{ showForm ? "Cerrar" : "Nuevo programa" }}
+        </button>
+        <button class="btn btn-primary" @click="$router.back()">
+          volver
+        </button>
+      </div>
+
     </div>
 
     <div v-if="error" class="alert alert-danger">

@@ -4,12 +4,18 @@
     <div class="d-flex justify-content-between mb-3">
       <h3>Gestión de Estudiantes</h3>
 
-      <button
-        class="btn btn-secondary"
-        @click="load"
-      >
-        Recargar
-      </button>
+      <div class="d-flex gap-2">
+        <button
+          class="btn btn-secondary"
+          @click="load"
+        >
+          Recargar
+        </button>
+        <button class="btn btn-primary" @click="$router.back()">
+          volver
+        </button>
+
+      </div>
     </div>
 
     <div class="row mb-3">

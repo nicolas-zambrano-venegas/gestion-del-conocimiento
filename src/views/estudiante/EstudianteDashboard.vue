@@ -1,14 +1,12 @@
 <template>
   <div class="container mt-5">
 
-   
-
-    <UserInfoCard
+    <EstudentInfoCard
       v-if="estudiante"
       :user="estudiante"
       class="mb-4"
     />
-    <UserInfoCard
+    <EstudentInfoCard
       v-else
       :user="placeholderUser"
       class="mb-4"
@@ -86,29 +84,19 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
 
 <script>
 import client from "../../sdk";
-import UserInfoCard from "../../components/user/UserInfoCard.vue";
-
-/* Leer token */
-function parseJwt(token) {
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch {
-    return null;
-  }
-}
+import EstudentInfoCard from "../../components/user/EstudentInfoCard.vue";
 
 export default {
   name: "EstudianteDashboard",
 
   components: {
-    UserInfoCard
+    EstudentInfoCard
   },
 
   data() {
@@ -129,45 +117,44 @@ export default {
   },
 
   async mounted() {
-    
-
     try {
       this.loading = true;
 
-      /* 1 Leer token */
-      const token = localStorage.getItem("token");
+      // /* 1 Leer token */
+      // const token = localStorage.getItem("token");
 
-      if (!token) {
-        throw new Error("No hay token");
-      }
+      // if (!token) {
+      //   throw new Error("No hay token");
+      // }
 
-      const payload = parseJwt(token);
-      const cedula = payload.sub;
+      // const payload = parseJwt(token);
+      // const cedula = payload.sub;
 
-      /* 2 Traer usuarios */
-      const res = await client.usuarios.list();
+      // /* 2 Traer usuarios */
+      // const res = await client.usuarios.list();
 
      
 
-      /* 3 Buscar usuario actual */
-      const usuario = res.items.find(
-        u => u.cedula === cedula
-      );
+      // /* 3 Buscar usuario actual */
+      // const usuario = res.items.find(
+      //   u => u.cedula === cedula
+      // );
 
     
 
-      if (!usuario) {
-        throw new Error("Usuario no encontrado");
-      }
+      // if (!usuario) {
+      //   throw new Error("Usuario no encontrado");
+      // }
 
-      /* 4 Mapear nombres */
-      this.estudiante = {
-        ...usuario,
-        nombres: usuario.nombre || "",
-        apellidos: ""
-      };
+      // /* 4 Mapear nombres */
+      // this.estudiante = {
+      //   ...usuario,
+      //   nombres: usuario.nombre || "",
+      //   apellidos: ""
+      // };
 
       /* 5 Buscar proyecto */
+      this.estudiante = await client.usuario;
       const proyectos = await client.proyectos.list({
         estudiante_id: this.estudiante.id
       });
@@ -189,7 +176,6 @@ export default {
   },
 
   methods: {
-
     goDetalleProyecto() {
       if (!this.proyecto) return;
 
@@ -216,6 +202,18 @@ export default {
 </script>
 
 <style scoped>
+.dashboard-section{
+  width: 100%
+}
+
+.profile-section {
+  margin-bottom: 45px;
+}
+
+.actions-section {
+  margin-top: 10px;
+}
+
 .dashboard-card {
   width: 100%;
   height: 180px;

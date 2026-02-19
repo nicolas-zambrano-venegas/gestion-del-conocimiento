@@ -1,6 +1,17 @@
 <template>
   <div class="container mt-4">
 
+    <AdminInfoCard 
+    v-if="admin"
+    :user ="admin"
+    class="mb-4"
+    />
+    <AdminInfoCard
+    v-else
+    :user="placeholderuser"
+    class="mb-4"
+    />
+
     <!-- ================= CARDS ================= -->
     <div class="row g-4 justify-content-center">
 
@@ -137,18 +148,28 @@
 <script>
 import client from "../../sdk";
 import { icons } from "../../constants/icons";
+import AdminInfoCard from "../../components/user/AdminInfoCard.vue";
+
+
 
 export default {
   name: "AdminDashboard",
 
+  components: {
+    AdminInfoCard
+  },
+
   data() {
     return {
+      admin: null,
       totalUsuarios: 0,
       icons
     };
   },
 
+
   async mounted() {
+    this.admin = await client.usuario;
     await this.cargarUsuarios();
   },
 
@@ -169,6 +190,7 @@ export default {
       }
     },
 
+
     cerrarSesion() {
       localStorage.clear();
       client.setToken(null);
@@ -187,9 +209,17 @@ export default {
 
 <style scoped>
 
+.dashboard-section{
+  width: 100%
+}
 
+.profile-section {
+  margin-bottom: 45px;
+}
 
-
+.actions-section {
+  margin-top: 10px;
+}
 /* ================= CARDS ================= */
 
 .dashboard-card {
